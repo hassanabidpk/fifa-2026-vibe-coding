@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Trophy,
   Calendar,
@@ -16,6 +16,13 @@ import {
   Pause,
   PlusCircle
 } from 'lucide-react';
+import {
+  advanceLiveMatch,
+  createOrderedEvents,
+  filterMatches,
+  injectManualGoal,
+  makeMatchLive,
+} from './lib/match-engine';
 
 interface MatchEvent {
   type: 'goal' | 'card-yellow' | 'card-red' | 'sub';
@@ -444,16 +451,20 @@ const INITIAL_STANDINGS: Record<string, Standing[]> = {
 export default function App() {
   const [matches, setMatches] = useState<FootballMatch[]>(INITIAL_MATCHES);
   const [standings] = useState<Record<string, Standing[]>>(INITIAL_STANDINGS);
-  const [selectedMatch, setSelectedMatch] = useState<FootballMatch | null>(INITIAL_MATCHES[6]); // default to Live Panama vs England
+  const [selectedMatchId, setSelectedMatchId] = useState<string>(INITIAL_MATCHES[6].id); // default to Live Panama vs England
   const [activeTab, setActiveTab] = useState<'all' | 'live' | 'upcoming' | 'finished'>('all');
   const [activeView, setActiveView] = useState<'matches' | 'standings'>('matches');
   const [searchQuery, setSearchQuery] = useState('');
   const [simIsRunning, setSimIsRunning] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
+  const selectedMatch = useMemo(
+    () => matches.find((match) => match.id === selectedMatchId) ?? null,
+    [matches, selectedMatchId],
+  );
 
   // Audio system for goal alerts
-  const playAlert = (type: 'goal' | 'whistle' | 'card') => {
+  const playAlert = useCallback((type: 'goal' | 'whistle' | 'card') => {
     if (!audioEnabled) return;
     try {
       const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -493,124 +504,39 @@ export default function App() {
     } catch (e) {
       console.warn('Audio play failed', e);
     }
-  };
+  }, [audioEnabled]);
 
   // Toast notifier helper
-  const showToast = (msg: string) => {
+  const showToast = useCallback((msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 4000);
-  };
+  }, []);
 
   // Real-time ticking simulation for live matches
   useEffect(() => {
     if (!simIsRunning) return;
 
     const interval = setInterval(() => {
-      setMatches((prevMatches) => {
-        return prevMatches.map((match) => {
+      const pendingNotifications: Array<{ type: 'goal' | 'whistle' | 'card'; message: string }> = [];
+
+      setMatches((prevMatches) =>
+        prevMatches.map((match) => {
           if (match.status !== 'live') return match;
 
-          // Increment minutes
-          const nextMin = match.minute + 1;
-          const isFullTime = nextMin >= 90;
+          const result = advanceLiveMatch(match);
+          pendingNotifications.push(...result.notifications);
+          return result.match;
+        }),
+      );
 
-          // Decide if an event happens
-          const roll = Math.random();
-          let updatedEvents = [...match.events];
-          let updatedHomeScore = match.homeScore;
-          let updatedAwayScore = match.awayScore;
-          let updatedStats = { ...match.stats };
-
-          // Randomly add possession fluctuations
-          const posShift = Math.floor(Math.random() * 5) - 2;
-          const newPos = Math.min(80, Math.max(20, match.stats.possession[0] + posShift));
-          updatedStats.possession = [newPos, 100 - newPos];
-
-          // Small stats progress
-          if (roll < 0.15) {
-            const isHome = Math.random() > 0.55;
-            if (isHome) {
-              updatedStats.shots[0] += 1;
-              if (Math.random() > 0.4) updatedStats.shotsOnTarget[0] += 1;
-            } else {
-              updatedStats.shots[1] += 1;
-              if (Math.random() > 0.4) updatedStats.shotsOnTarget[1] += 1;
-            }
-          }
-
-          if (roll < 0.05) {
-            // GOAL Event!
-            const scoreForHome = Math.random() > 0.55;
-            const scoringTeam = scoreForHome ? 'home' : 'away';
-            const scorer = scoreForHome
-              ? (match.homeTeam === 'Panama' ? 'Cecilio Waterman' : 'Inaki Williams')
-              : (match.awayTeam === 'England' ? 'Bukayo Saka' : 'Jordan Ayew');
-
-            if (scoreForHome) {
-              updatedHomeScore += 1;
-              updatedStats.shots[0] += 1;
-              updatedStats.shotsOnTarget[0] += 1;
-            } else {
-              updatedAwayScore += 1;
-              updatedStats.shots[1] += 1;
-              updatedStats.shotsOnTarget[1] += 1;
-            }
-
-            updatedEvents.push({
-              type: 'goal',
-              time: nextMin,
-              team: scoringTeam,
-              player: scorer,
-              detail: scoreForHome ? 'Brilliant tap-in' : 'Stunning curling shot'
-            });
-
-            playAlert('goal');
-            showToast(`⚽ GOAL! ${scoreForHome ? match.homeTeam : match.awayTeam} score! (${scorer} - ${nextMin}')`);
-          } else if (roll < 0.08) {
-            // Yellow Card Event
-            const cardForHome = Math.random() > 0.5;
-            const player = cardForHome
-              ? (match.homeTeam === 'Panama' ? 'Michael Murillo' : 'Luka Modrić')
-              : (match.awayTeam === 'England' ? 'Declan Rice' : 'Thomas Partey');
-
-            updatedEvents.push({
-              type: 'card-yellow',
-              time: nextMin,
-              team: cardForHome ? 'home' : 'away',
-              player
-            });
-
-            playAlert('card');
-            showToast(`🟨 YELLOW CARD! ${player} (${cardForHome ? match.homeTeam : match.awayTeam})`);
-          }
-
-          const updatedMatch: FootballMatch = {
-            ...match,
-            minute: isFullTime ? 90 : nextMin,
-            status: isFullTime ? 'finished' : 'live',
-            homeScore: updatedHomeScore,
-            awayScore: updatedAwayScore,
-            events: updatedEvents,
-            stats: updatedStats
-          };
-
-          // Keep selected match state updated live
-          if (selectedMatch && selectedMatch.id === match.id) {
-            setSelectedMatch(updatedMatch);
-          }
-
-          if (isFullTime) {
-            playAlert('whistle');
-            showToast(`🏁 FULL TIME! ${match.homeTeam} ${updatedHomeScore} - ${updatedAwayScore} ${match.awayTeam}`);
-          }
-
-          return updatedMatch;
-        });
+      pendingNotifications.forEach((notification) => {
+        playAlert(notification.type);
+        showToast(notification.message);
       });
     }, 12000); // Ticks every 12 seconds (~1 simulated minute = 12 real seconds)
 
     return () => clearInterval(interval);
-  }, [simIsRunning, audioEnabled, selectedMatch]);
+  }, [simIsRunning, playAlert, showToast]);
 
   // Handle manually simulating a Goal for selected match
   const simulateGoal = (scoringTeam: 'home' | 'away') => {
@@ -618,95 +544,43 @@ export default function App() {
     const isLive = selectedMatch.status === 'live';
     const goalMin = isLive ? selectedMatch.minute : Math.floor(Math.random() * 88) + 1;
 
-    setMatches((prevMatches) => {
-      return prevMatches.map((m) => {
-        if (m.id !== selectedMatch.id) return m;
+    setMatches((prevMatches) =>
+      prevMatches.map((match) => {
+        if (match.id !== selectedMatch.id) return match;
+        return injectManualGoal(match, scoringTeam, goalMin);
+      }),
+    );
 
-        const updatedEvents = [...m.events, {
-          type: 'goal' as const,
-          time: goalMin,
-          team: scoringTeam,
-          player: scoringTeam === 'home'
-            ? `${m.homeTeam} Striker`
-            : `${m.awayTeam} Winger`,
-          detail: 'Powerful header from deep cross'
-        }];
-
-        const updatedHomeScore = scoringTeam === 'home' ? m.homeScore + 1 : m.homeScore;
-        const updatedAwayScore = scoringTeam === 'away' ? m.awayScore + 1 : m.awayScore;
-        const updatedStats = { ...m.stats };
-        if (scoringTeam === 'home') {
-          updatedStats.shots[0] += 1;
-          updatedStats.shotsOnTarget[0] += 1;
-        } else {
-          updatedStats.shots[1] += 1;
-          updatedStats.shotsOnTarget[1] += 1;
-        }
-
-        const updated = {
-          ...m,
-          homeScore: updatedHomeScore,
-          awayScore: updatedAwayScore,
-          events: updatedEvents,
-          stats: updatedStats
-        };
-
-        setSelectedMatch(updated);
-        playAlert('goal');
-        showToast(`⚽ MANUAL GOAL! ${scoringTeam === 'home' ? m.homeTeam : m.awayTeam} scores at ${goalMin}'!`);
-        return updated;
-      });
-    });
+    playAlert('goal');
+    showToast(`⚽ MANUAL GOAL! ${scoringTeam === 'home' ? selectedMatch.homeTeam : selectedMatch.awayTeam} scores at ${goalMin}'!`);
   };
 
   // Convert an upcoming match to LIVE manually
-  const makeMatchLive = (matchId: string) => {
-    setMatches((prevMatches) => {
-      return prevMatches.map((m) => {
-        if (m.id !== matchId) return m;
+  const startMatchLive = (matchId: string) => {
+    setMatches((prevMatches) =>
+      prevMatches.map((match) => (match.id === matchId ? makeMatchLive(match) : match)),
+    );
 
-        const updated: FootballMatch = {
-          ...m,
-          status: 'live',
-          minute: 1,
-          homeScore: 0,
-          awayScore: 0,
-          events: [],
-          stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
-        };
-
-        if (selectedMatch && selectedMatch.id === matchId) {
-          setSelectedMatch(updated);
-        }
-
-        playAlert('whistle');
-        showToast(`⚔️ KICK OFF! ${m.homeTeam} vs ${m.awayTeam} is now LIVE!`);
-        return updated;
-      });
-    });
+    const kickoffMatch = matches.find((match) => match.id === matchId);
+    if (kickoffMatch) {
+      playAlert('whistle');
+      showToast(`⚔️ KICK OFF! ${kickoffMatch.homeTeam} vs ${kickoffMatch.awayTeam} is now LIVE!`);
+    }
   };
 
   // Reset all simulation scores
   const resetSimulation = () => {
     setMatches(INITIAL_MATCHES);
-    setSelectedMatch(INITIAL_MATCHES[6]);
+    setSelectedMatchId(INITIAL_MATCHES[6].id);
     showToast('🔄 Simulation reset to initial June 27/28 state.');
     playAlert('whistle');
   };
 
   // Filter matches based on search and active status tab
-  const filteredMatches = matches.filter((match) => {
-    const query = searchQuery.toLowerCase();
-    const matchesSearch =
-      match.homeTeam.toLowerCase().includes(query) ||
-      match.awayTeam.toLowerCase().includes(query) ||
-      match.group.toLowerCase().includes(query);
-
-    if (!matchesSearch) return false;
-
-    if (activeTab === 'all') return true;
-    return match.status === activeTab;
-  });
+  const filteredMatches = useMemo(
+    () => filterMatches(matches, searchQuery, activeTab),
+    [matches, searchQuery, activeTab],
+  );
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
@@ -886,7 +760,7 @@ export default function App() {
                             return (
                               <div
                                 key={match.id}
-                                onClick={() => setSelectedMatch(match)}
+                                onClick={() => setSelectedMatchId(match.id)}
                                 className={`group relative overflow-hidden rounded-2xl border p-4 cursor-pointer hover:shadow-xl transition-all ${
                                   isSelected
                                     ? 'bg-indigo-900/10 border-indigo-500/60 shadow-lg shadow-indigo-500/5'
@@ -965,7 +839,7 @@ export default function App() {
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        makeMatchLive(match.id);
+                                        startMatchLive(match.id);
                                       }}
                                       className="flex items-center gap-1 text-indigo-400 font-extrabold hover:text-indigo-300 transition"
                                     >
@@ -1093,8 +967,7 @@ export default function App() {
                         </p>
                       ) : (
                         <div className="space-y-3.5 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
-                          {selectedMatch.events
-                            .sort((a, b) => b.time - a.time) // Show latest first
+                          {createOrderedEvents(selectedMatch.events)
                             .map((ev, index) => (
                               <div key={index} className="flex gap-4 items-start text-xs pl-2.5 relative">
                                 <div className="absolute left-1.5 top-1.5 w-3 h-3 rounded-full bg-slate-800 border-2 border-slate-900 flex items-center justify-center z-10">
