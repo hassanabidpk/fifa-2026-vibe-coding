@@ -1,0 +1,51 @@
+name: Refresh FIFA standings
+
+on:
+  schedule:
+    - cron: '*/15 17-23,0-4 * * *' # 01:00-12:59 SGT
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Chrome
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Refresh standings data
+        env:
+          CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
+        run: python3 scripts/refresh_fifa_standings.py
+
+      - name: Validate
+        run: npm test && npm run lint && npm run build
+
+      - name: Commit and push if changed
+        run: |
+          if git diff --quiet -- src/data/fifa-standings.ts; then
+            echo 'No standings data change.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/data/fifa-standings.ts
+          git commit -m 'chore: refresh fifa standings data'
+          git push origin HEAD:main
