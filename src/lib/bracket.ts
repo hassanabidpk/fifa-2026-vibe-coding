@@ -37,6 +37,16 @@ const createMatch = (id: string, home: RankedStanding, away: RankedStanding): Kn
   awayLabel: `${away.group} #${away.position}`,
 });
 
+const createWinnerMatch = (id: string, homeSource: string, awaySource: string): KnockoutMatch => ({
+  id,
+  homeTeam: homeSource,
+  awayTeam: awaySource,
+  homeFlag: '🏆',
+  awayFlag: '🏆',
+  homeLabel: `Winner ${homeSource}`,
+  awayLabel: `Winner ${awaySource}`,
+});
+
 export const buildKnockoutBracket = (snapshot: StandingsSnapshot): KnockoutRound[] => {
   const roundOf32: KnockoutMatch[] = [
     createMatch('R32-1', findQualified(snapshot, 'Group A', 1), bestThird(snapshot, 6)),
@@ -45,29 +55,42 @@ export const buildKnockoutBracket = (snapshot: StandingsSnapshot): KnockoutRound
     createMatch('R32-4', findQualified(snapshot, 'Group D', 1), bestThird(snapshot, 3)),
     createMatch('R32-5', findQualified(snapshot, 'Group E', 1), bestThird(snapshot, 2)),
     createMatch('R32-6', findQualified(snapshot, 'Group F', 1), bestThird(snapshot, 1)),
-    createMatch('R32-7', findQualified(snapshot, 'Group G', 1), bestThird(snapshot, 0)),
-    createMatch('R32-8', findQualified(snapshot, 'Group H', 1), findQualified(snapshot, 'Group I', 2)),
+    createMatch('R32-7', findQualified(snapshot, 'Group H', 1), bestThird(snapshot, 0)),
+    createMatch('R32-8', findQualified(snapshot, 'Group L', 1), bestThird(snapshot, 7)),
+    createMatch('R32-9', findQualified(snapshot, 'Group I', 1), findQualified(snapshot, 'Group J', 2)),
+    createMatch('R32-10', findQualified(snapshot, 'Group J', 1), findQualified(snapshot, 'Group I', 2)),
+    createMatch('R32-11', findQualified(snapshot, 'Group K', 1), findQualified(snapshot, 'Group L', 2)),
+    createMatch('R32-12', findQualified(snapshot, 'Group G', 1), findQualified(snapshot, 'Group H', 2)),
+    createMatch('R32-13', findQualified(snapshot, 'Group A', 2), findQualified(snapshot, 'Group B', 2)),
+    createMatch('R32-14', findQualified(snapshot, 'Group C', 2), findQualified(snapshot, 'Group D', 2)),
+    createMatch('R32-15', findQualified(snapshot, 'Group E', 2), findQualified(snapshot, 'Group F', 2)),
+    createMatch('R32-16', findQualified(snapshot, 'Group G', 2), findQualified(snapshot, 'Group K', 2)),
   ];
 
   const roundOf16: KnockoutMatch[] = [
-    { id: 'R16-1', homeTeam: findQualified(snapshot, 'Group I', 1).team, awayTeam: findQualified(snapshot, 'Group H', 2).team, homeFlag: findQualified(snapshot, 'Group I', 1).flag, awayFlag: findQualified(snapshot, 'Group H', 2).flag, homeLabel: `${findQualified(snapshot, 'Group I', 1).group} #1`, awayLabel: `${findQualified(snapshot, 'Group H', 2).group} #2` },
-    { id: 'R16-2', homeTeam: findQualified(snapshot, 'Group J', 1).team, awayTeam: findQualified(snapshot, 'Group G', 2).team, homeFlag: findQualified(snapshot, 'Group J', 1).flag, awayFlag: findQualified(snapshot, 'Group G', 2).flag, homeLabel: `${findQualified(snapshot, 'Group J', 1).group} #1`, awayLabel: `${findQualified(snapshot, 'Group G', 2).group} #2` },
-    { id: 'R16-3', homeTeam: findQualified(snapshot, 'Group K', 1).team, awayTeam: findQualified(snapshot, 'Group F', 2).team, homeFlag: findQualified(snapshot, 'Group K', 1).flag, awayFlag: findQualified(snapshot, 'Group F', 2).flag, homeLabel: `${findQualified(snapshot, 'Group K', 1).group} #1`, awayLabel: `${findQualified(snapshot, 'Group F', 2).group} #2` },
-    { id: 'R16-4', homeTeam: findQualified(snapshot, 'Group L', 1).team, awayTeam: findQualified(snapshot, 'Group E', 2).team, homeFlag: findQualified(snapshot, 'Group L', 1).flag, awayFlag: findQualified(snapshot, 'Group E', 2).flag, homeLabel: `${findQualified(snapshot, 'Group L', 1).group} #1`, awayLabel: `${findQualified(snapshot, 'Group E', 2).group} #2` },
+    createWinnerMatch('R16-1', 'R32-1', 'R32-2'),
+    createWinnerMatch('R16-2', 'R32-3', 'R32-4'),
+    createWinnerMatch('R16-3', 'R32-5', 'R32-6'),
+    createWinnerMatch('R16-4', 'R32-7', 'R32-8'),
+    createWinnerMatch('R16-5', 'R32-9', 'R32-10'),
+    createWinnerMatch('R16-6', 'R32-11', 'R32-12'),
+    createWinnerMatch('R16-7', 'R32-13', 'R32-14'),
+    createWinnerMatch('R16-8', 'R32-15', 'R32-16'),
   ];
 
   const quarterfinals: KnockoutMatch[] = [
-    { id: 'QF-1', homeTeam: roundOf32[0].homeTeam, awayTeam: 'Winner R32-2', homeFlag: roundOf32[0].homeFlag, awayFlag: '🏆', homeLabel: 'Winner R32-1', awayLabel: 'Winner R32-2' },
-    { id: 'QF-2', homeTeam: roundOf32[2].homeTeam, awayTeam: 'Winner R32-4', homeFlag: roundOf32[2].homeFlag, awayFlag: '🏆', homeLabel: 'Winner R32-3', awayLabel: 'Winner R32-4' },
+    createWinnerMatch('QF-1', 'R16-1', 'R16-2'),
+    createWinnerMatch('QF-2', 'R16-3', 'R16-4'),
+    createWinnerMatch('QF-3', 'R16-5', 'R16-6'),
+    createWinnerMatch('QF-4', 'R16-7', 'R16-8'),
   ];
 
   const semifinals: KnockoutMatch[] = [
-    { id: 'SF-1', homeTeam: quarterfinals[0].homeTeam, awayTeam: 'Winner QF-2', homeFlag: quarterfinals[0].homeFlag, awayFlag: '🏆', homeLabel: 'Winner QF-1', awayLabel: 'Winner QF-2' },
+    createWinnerMatch('SF-1', 'QF-1', 'QF-2'),
+    createWinnerMatch('SF-2', 'QF-3', 'QF-4'),
   ];
 
-  const final: KnockoutMatch[] = [
-    { id: 'F-1', homeTeam: semifinals[0].homeTeam, awayTeam: 'Winner R32-7', homeFlag: semifinals[0].homeFlag, awayFlag: '🏆', homeLabel: 'Winner SF-1', awayLabel: 'Winner R32-7' },
-  ];
+  const final: KnockoutMatch[] = [createWinnerMatch('F-1', 'SF-1', 'SF-2')];
 
   return [
     { name: 'Round of 32', matches: roundOf32 },

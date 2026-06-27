@@ -15,7 +15,7 @@ const createStanding = (team: string, points: number, gd: number, flag = '🏳�
 });
 
 describe('buildKnockoutBracket', () => {
-  it('builds a complete projected bracket from the standings snapshot', () => {
+  it('builds a full 32-team knockout bracket with correct progression labels', () => {
     const groups: Record<string, Standing[]> = {
       'Group A': [createStanding('Mexico', 9, 6, '🇲🇽'), createStanding('South Africa', 4, -1, '🇿🇦'), createStanding('Korea Republic', 3, -1, '🇰🇷'), createStanding('Czechia', 1, -4, '🇨🇿')],
       'Group B': [createStanding('Switzerland', 7, 4, '🇨🇭'), createStanding('Canada', 4, 5, '🇨🇦'), createStanding('Bosnia and Herzegovina', 4, -1, '🇧🇦'), createStanding('Qatar', 1, -8, '🇶🇦')],
@@ -35,13 +35,39 @@ describe('buildKnockoutBracket', () => {
     const bracket = buildKnockoutBracket(snapshot);
 
     expect(bracket.map((round) => round.name)).toEqual(['Round of 32', 'Round of 16', 'Quarterfinals', 'Semifinals', 'Final']);
-    expect(bracket[0].matches).toHaveLength(8);
-    expect(bracket[1].matches).toHaveLength(4);
-    expect(bracket[2].matches).toHaveLength(2);
-    expect(bracket[3].matches).toHaveLength(1);
+    expect(bracket[0].matches).toHaveLength(16);
+    expect(bracket[1].matches).toHaveLength(8);
+    expect(bracket[2].matches).toHaveLength(4);
+    expect(bracket[3].matches).toHaveLength(2);
     expect(bracket[4].matches).toHaveLength(1);
-    expect(bracket[0].matches[0].homeTeam).toBe('Mexico');
-    expect(bracket[0].matches[0].awayTeam).toBe('Croatia');
-    expect(bracket[4].matches[0].awayLabel).toContain('Winner R32-7');
+
+    expect(bracket[0].matches[0]).toMatchObject({
+      id: 'R32-1',
+      homeTeam: 'Mexico',
+      homeLabel: 'Group A #1',
+    });
+    expect(bracket[0].matches.some((match) => match.homeTeam === 'France' && match.awayLabel === 'Group J #2')).toBe(true);
+    expect(bracket[0].matches.some((match) => match.homeTeam === 'Belgium' && match.awayLabel === 'Group H #2')).toBe(true);
+
+    expect(bracket[1].matches[0]).toMatchObject({
+      id: 'R16-1',
+      homeLabel: 'Winner R32-1',
+      awayLabel: 'Winner R32-2',
+    });
+    expect(bracket[2].matches[0]).toMatchObject({
+      id: 'QF-1',
+      homeLabel: 'Winner R16-1',
+      awayLabel: 'Winner R16-2',
+    });
+    expect(bracket[3].matches[1]).toMatchObject({
+      id: 'SF-2',
+      homeLabel: 'Winner QF-3',
+      awayLabel: 'Winner QF-4',
+    });
+    expect(bracket[4].matches[0]).toMatchObject({
+      id: 'F-1',
+      homeLabel: 'Winner SF-1',
+      awayLabel: 'Winner SF-2',
+    });
   });
 });
