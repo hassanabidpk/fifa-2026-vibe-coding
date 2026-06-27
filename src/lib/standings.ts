@@ -32,6 +32,7 @@ export interface RankedStanding extends Standing {
 
 export interface StandingsSnapshot {
   groups: Record<string, RankedStanding[]>;
+  thirdPlaceTeams: RankedStanding[];
   bestThirdPlaceTeams: RankedStanding[];
 }
 
@@ -139,9 +140,11 @@ export const buildStandingsSnapshot = (standingsByGroup: Record<string, Standing
     .filter((entry): entry is { group: string; team: Standing } => Boolean(entry.team))
     .sort((a, b) => byTableOrder(a.team, b.team) || a.group.localeCompare(b.group));
 
-  const bestThirdPlaceTeams = thirdPlaceCandidates
-    .slice(0, 8)
-    .map(({ group, team }) => toRankedStanding(group, team, 3, 'best-third'));
+  const thirdPlaceTeams = thirdPlaceCandidates.map(({ group, team }) => toRankedStanding(group, team, 3, 'eliminated'));
+  const bestThirdPlaceTeams = thirdPlaceTeams.slice(0, 8).map((team) => ({
+    ...team,
+    qualificationStatus: 'best-third' as const,
+  }));
 
   const bestThirdKeys = new Set(bestThirdPlaceTeams.map((team) => `${team.group}:${team.team}`));
 
@@ -159,6 +162,7 @@ export const buildStandingsSnapshot = (standingsByGroup: Record<string, Standing
 
   return {
     groups,
+    thirdPlaceTeams,
     bestThirdPlaceTeams,
   };
 };

@@ -86,7 +86,7 @@ describe('standings', () => {
     });
   });
 
-  it('marks top two teams plus the best eight third-placed teams as Round of 32 qualifiers', () => {
+  it('exposes the full third-place ranking while marking only the best eight as qualifiers', () => {
     const standingsByGroup: Record<string, Standing[]> = {
       'Group A': [createStanding('A1', 7, 4), createStanding('A2', 6, 3), createStanding('A3', 5, 2), createStanding('A4', 1, -5)],
       'Group B': [createStanding('B1', 7, 4), createStanding('B2', 6, 3), createStanding('B3', 4, 1), createStanding('B4', 0, -6)],
@@ -104,6 +104,7 @@ describe('standings', () => {
 
     const snapshot = buildStandingsSnapshot(standingsByGroup);
 
+    expect(snapshot.thirdPlaceTeams).toHaveLength(12);
     expect(snapshot.bestThirdPlaceTeams).toHaveLength(8);
     expect([...snapshot.bestThirdPlaceTeams.map((team: { team: string }) => team.team)].sort()).toEqual([
       'A3',
@@ -115,6 +116,8 @@ describe('standings', () => {
       'G3',
       'H3',
     ]);
+    expect(snapshot.thirdPlaceTeams[0].team).toBe('A3');
+    expect(snapshot.thirdPlaceTeams.at(-1)?.team).toBe('K3');
     expect(snapshot.groups['Group A'][0].qualificationStatus).toBe('qualified');
     expect(snapshot.groups['Group A'][1].qualificationStatus).toBe('qualified');
     expect(snapshot.groups['Group A'][2].qualificationStatus).toBe('best-third');
