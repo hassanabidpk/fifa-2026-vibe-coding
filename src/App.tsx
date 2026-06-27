@@ -27,8 +27,10 @@ import {
   syncMatchStatuses,
 } from './lib/match-engine';
 import { buildKnockoutBracket } from './lib/bracket';
+import { OFFICIAL_FIFA_FIXTURES } from './data/fifa-fixtures';
 import { OFFICIAL_FIFA_STANDINGS_TEXT } from './data/fifa-standings';
 import { parseFifaStandingsText } from './lib/fifa-standings';
+import { buildOfficialMatchSeeds } from './lib/official-fixtures';
 import { getThemeTokens, type ThemeMode } from './lib/theme';
 import {
   buildStandingsFromMatches,
@@ -1427,11 +1429,43 @@ const INITIAL_MATCHES: FootballMatch[] = [
   }
 ];
 
-const INITIAL_STANDINGS: Record<string, Standing[]> = buildStandingsFromMatches(INITIAL_MATCHES);
+const DEFAULT_MATCH_STATS: MatchStats = {
+  possession: [50, 50],
+  shots: [0, 0],
+  shotsOnTarget: [0, 0],
+  corners: [0, 0],
+  fouls: [0, 0],
+};
+
+const OFFICIAL_INITIAL_MATCHES: FootballMatch[] = buildOfficialMatchSeeds(
+  INITIAL_MATCHES.map((match) => ({
+    id: match.id,
+    group: match.group,
+    homeTeam: match.homeTeam,
+    homeFlag: match.homeFlag,
+    awayTeam: match.awayTeam,
+    awayFlag: match.awayFlag,
+    dateSgt: match.dateSgt,
+    timeSgt: match.timeSgt,
+    stadium: match.stadium,
+    city: match.city,
+    status: match.status,
+    homeScore: match.homeScore,
+    awayScore: match.awayScore,
+    minute: match.minute,
+  })),
+  OFFICIAL_FIFA_FIXTURES,
+).map((match) => ({
+  ...match,
+  events: [],
+  stats: { ...DEFAULT_MATCH_STATS },
+}));
+
+const INITIAL_STANDINGS: Record<string, Standing[]> = buildStandingsFromMatches(OFFICIAL_INITIAL_MATCHES);
 
 const OFFICIAL_FIFA_STANDINGS = parseFifaStandingsText(OFFICIAL_FIFA_STANDINGS_TEXT);
 const TEAM_FLAG_LOOKUP = Object.fromEntries(
-  INITIAL_MATCHES.flatMap((match) => [
+  OFFICIAL_INITIAL_MATCHES.flatMap((match) => [
     [match.homeTeam, match.homeFlag],
     [match.awayTeam, match.awayFlag],
   ]),
@@ -1456,8 +1490,10 @@ const OFFICIAL_STANDINGS: Record<string, Standing[]> = Object.fromEntries(
 
 const createInitialMatches = (now = new Date()): FootballMatch[] =>
   syncMatchStatuses(
-    INITIAL_MATCHES.map((match) => ({
+    OFFICIAL_INITIAL_MATCHES.map((match) => ({
       ...match,
+      events: [...match.events],
+      stats: { ...DEFAULT_MATCH_STATS },
       ...normalizeVenue(match.stadium, match.city),
     })),
     now,

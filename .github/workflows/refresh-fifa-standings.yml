@@ -1,4 +1,4 @@
-name: Refresh FIFA standings
+name: Refresh FIFA data
 
 on:
   schedule:
@@ -30,7 +30,7 @@ jobs:
         id: setup-chrome
         uses: browser-actions/setup-chrome@v1
 
-      - name: Refresh standings data
+      - name: Refresh standings and fixtures data
         env:
           CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: python3 scripts/refresh_fifa_standings.py
@@ -40,12 +40,12 @@ jobs:
 
       - name: Commit and push if changed
         run: |
-          if git diff --quiet -- src/data/fifa-standings.ts; then
-            echo 'No standings data change.'
+          if git diff --quiet -- src/data/fifa-standings.ts src/data/fifa-fixtures.ts; then
+            echo 'No FIFA data change.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/data/fifa-standings.ts
-          git commit -m 'chore: refresh fifa standings data'
+          git add src/data/fifa-standings.ts src/data/fifa-fixtures.ts
+          git commit -m 'chore: refresh fifa data'
           git push origin HEAD:main
