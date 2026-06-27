@@ -25,6 +25,7 @@ import {
   syncMatchStatuses,
 } from './lib/match-engine';
 import {
+  buildStandingsFromMatches,
   buildStandingsSnapshot,
   normalizeVenue,
   type Standing,
@@ -77,17 +78,18 @@ const INITIAL_MATCHES: FootballMatch[] = [
     awayFlag: '🇫🇷',
     dateSgt: 'Sat, Jun 27',
     timeSgt: '03:00 AM',
-    stadium: 'MetLife Stadium',
-    city: 'East Rutherford, NJ',
+    stadium: 'Boston Stadium',
+    city: 'Boston',
     status: 'finished',
     homeScore: 1,
-    awayScore: 2,
+    awayScore: 4,
     minute: 90,
     events: [
-      { type: 'goal', time: 14, team: 'away', player: 'Kylian Mbappé', detail: 'Assist by Griezmann' },
-      { type: 'card-yellow', time: 32, team: 'home', player: 'Erling Haaland' },
-      { type: 'goal', time: 58, team: 'home', player: 'Erling Haaland', detail: 'Penalty Kick' },
-      { type: 'goal', time: 82, team: 'away', player: 'Antoine Griezmann', detail: 'Header from Corner' },
+      { type: 'goal', time: 12, team: 'away', player: 'Kylian Mbappé', detail: 'Driven finish from the left channel' },
+      { type: 'goal', time: 37, team: 'away', player: 'Ousmane Dembélé', detail: 'Low finish after a quick counter' },
+      { type: 'goal', time: 61, team: 'home', player: 'Erling Haaland', detail: 'Powerful strike from close range' },
+      { type: 'goal', time: 74, team: 'away', player: 'Antoine Griezmann', detail: 'Placed finish from the edge of the box' },
+      { type: 'goal', time: 88, team: 'away', player: 'Randal Kolo Muani', detail: 'Late clincher in transition' },
     ],
     stats: {
       possession: [42, 58],
@@ -106,16 +108,18 @@ const INITIAL_MATCHES: FootballMatch[] = [
     awayFlag: '🇮🇶',
     dateSgt: 'Sat, Jun 27',
     timeSgt: '03:00 AM',
-    stadium: 'BC Place',
-    city: 'Vancouver, BC',
+    stadium: 'Toronto Stadium',
+    city: 'Toronto',
     status: 'finished',
-    homeScore: 2,
+    homeScore: 5,
     awayScore: 0,
     minute: 90,
     events: [
-      { type: 'goal', time: 27, team: 'home', player: 'Nicolas Jackson', detail: 'Long strike into bottom corner' },
-      { type: 'goal', time: 64, team: 'home', player: 'Sadio Mané', detail: 'Slick tap-in' },
-      { type: 'card-yellow', time: 78, team: 'away', player: 'Ayman Hussein' },
+      { type: 'goal', time: 9, team: 'home', player: 'Sadio Mané', detail: 'Quick finish at the near post' },
+      { type: 'goal', time: 26, team: 'home', player: 'Nicolas Jackson', detail: 'Run in behind and composed finish' },
+      { type: 'goal', time: 44, team: 'home', player: 'Ismaïla Sarr', detail: 'First-time strike from the cutback' },
+      { type: 'goal', time: 68, team: 'home', player: 'Pape Matar Sarr', detail: 'Long-range effort into the corner' },
+      { type: 'goal', time: 84, team: 'home', player: 'Boulaye Dia', detail: 'Tap-in from close range' },
     ],
     stats: {
       possession: [55, 45],
@@ -128,22 +132,19 @@ const INITIAL_MATCHES: FootballMatch[] = [
   {
     id: 'm3',
     group: 'Group H',
-    homeTeam: 'Cape Verde',
+    homeTeam: 'Cabo Verde',
     homeFlag: '🇨🇻',
     awayTeam: 'Saudi Arabia',
     awayFlag: '🇸🇦',
     dateSgt: 'Sat, Jun 27',
     timeSgt: '08:00 AM',
-    stadium: 'Gillette Stadium',
-    city: 'Foxborough, MA',
+    stadium: 'Houston Stadium',
+    city: 'Houston',
     status: 'finished',
-    homeScore: 1,
-    awayScore: 1,
+    homeScore: 0,
+    awayScore: 0,
     minute: 90,
-    events: [
-      { type: 'goal', time: 42, team: 'away', player: 'Salem Al-Dawsari', detail: 'Stunning curler' },
-      { type: 'goal', time: 89, team: 'home', player: 'Ryan Mendes', detail: 'Dramatic late equalizer' },
-    ],
+    events: [],
     stats: {
       possession: [48, 52],
       shots: [8, 11],
@@ -161,18 +162,14 @@ const INITIAL_MATCHES: FootballMatch[] = [
     awayFlag: '🇪🇸',
     dateSgt: 'Sat, Jun 27',
     timeSgt: '08:00 AM',
-    stadium: 'Hard Rock Stadium',
-    city: 'Miami, FL',
+    stadium: 'Guadalajara Stadium',
+    city: 'Guadalajara',
     status: 'finished',
-    homeScore: 2,
-    awayScore: 3,
+    homeScore: 0,
+    awayScore: 1,
     minute: 90,
     events: [
-      { type: 'goal', time: 9, team: 'away', player: 'Lamine Yamal', detail: 'Incredible solo run & cut-in' },
-      { type: 'goal', time: 23, team: 'home', player: 'Darwin Núñez', detail: 'Bullet header' },
-      { type: 'goal', time: 45, team: 'away', player: 'Nico Williams', detail: 'Clinical counter-attack' },
-      { type: 'goal', time: 67, team: 'home', player: 'Federico Valverde', detail: 'Spectacular 25-yard volley' },
-      { type: 'goal', time: 76, team: 'away', player: 'Dani Olmo', detail: 'Deflected shot' },
+      { type: 'goal', time: 71, team: 'away', player: 'Álvaro Morata', detail: 'Clinical finish from the six-yard box' },
     ],
     stats: {
       possession: [45, 55],
@@ -191,8 +188,8 @@ const INITIAL_MATCHES: FootballMatch[] = [
     awayFlag: '🇮🇷',
     dateSgt: 'Sat, Jun 27',
     timeSgt: '11:00 AM',
-    stadium: 'Mercedes-Benz Stadium',
-    city: 'Atlanta, GA',
+    stadium: 'Seattle Stadium',
+    city: 'Seattle',
     status: 'finished',
     homeScore: 1,
     awayScore: 1,
@@ -218,16 +215,19 @@ const INITIAL_MATCHES: FootballMatch[] = [
     awayFlag: '🇧🇪',
     dateSgt: 'Sat, Jun 27',
     timeSgt: '11:00 AM',
-    stadium: 'Lincoln Financial Field',
-    city: 'Philadelphia, PA',
+    stadium: 'BC Place Vancouver',
+    city: 'Vancouver',
     status: 'finished',
-    homeScore: 0,
-    awayScore: 3,
+    homeScore: 1,
+    awayScore: 5,
     minute: 90,
     events: [
-      { type: 'goal', time: 18, team: 'away', player: 'Loïs Openda', detail: 'Low drive across goal' },
-      { type: 'goal', time: 41, team: 'away', player: 'Kevin De Bruyne', detail: 'Direct free kick masterclass' },
-      { type: 'goal', time: 73, team: 'away', player: 'Jérémy Doku', detail: 'Dazzling solo dribble' },
+      { type: 'goal', time: 7, team: 'away', player: 'Romelu Lukaku', detail: 'Header from a deep cross' },
+      { type: 'goal', time: 19, team: 'home', player: 'Chris Wood', detail: 'Close-range finish after a scramble' },
+      { type: 'goal', time: 33, team: 'away', player: 'Kevin De Bruyne', detail: 'Composed finish from the edge of the box' },
+      { type: 'goal', time: 52, team: 'away', player: 'Jérémy Doku', detail: 'Cut inside and curled into the far corner' },
+      { type: 'goal', time: 69, team: 'away', player: 'Loïs Openda', detail: 'Poached finish after the rebound' },
+      { type: 'goal', time: 84, team: 'away', player: 'Leandro Trossard', detail: 'Low strike from a fast break' },
     ],
     stats: {
       possession: [35, 65],
@@ -248,8 +248,8 @@ const INITIAL_MATCHES: FootballMatch[] = [
     awayFlag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     dateSgt: 'Sun, Jun 28',
     timeSgt: '05:00 AM',
-    stadium: 'MetLife Stadium',
-    city: 'East Rutherford, NJ',
+    stadium: 'New York/New Jersey Stadium',
+    city: 'New Jersey',
     status: 'live',
     homeScore: 0,
     awayScore: 1,
@@ -275,8 +275,8 @@ const INITIAL_MATCHES: FootballMatch[] = [
     awayFlag: '🇬🇭',
     dateSgt: 'Sun, Jun 28',
     timeSgt: '05:00 AM',
-    stadium: 'Lincoln Financial Field',
-    city: 'Philadelphia, PA',
+    stadium: 'Philadelphia Stadium',
+    city: 'Philadelphia',
     status: 'live',
     homeScore: 1,
     awayScore: 1,
@@ -304,8 +304,8 @@ const INITIAL_MATCHES: FootballMatch[] = [
     awayFlag: '🇵🇹',
     dateSgt: 'Sun, Jun 28',
     timeSgt: '07:30 AM',
-    stadium: 'Hard Rock Stadium',
-    city: 'Miami, FL',
+    stadium: 'Miami Stadium',
+    city: 'Miami',
     status: 'upcoming',
     homeScore: 0,
     awayScore: 0,
@@ -322,8 +322,8 @@ const INITIAL_MATCHES: FootballMatch[] = [
     awayFlag: '🇺🇿',
     dateSgt: 'Sun, Jun 28',
     timeSgt: '07:30 AM',
-    stadium: 'Levi Stadium',
-    city: 'Santa Clara, CA',
+    stadium: 'Atlanta Stadium',
+    city: 'Atlanta',
     status: 'upcoming',
     homeScore: 0,
     awayScore: 0,
@@ -340,8 +340,8 @@ const INITIAL_MATCHES: FootballMatch[] = [
     awayFlag: '🇦🇹',
     dateSgt: 'Sun, Jun 28',
     timeSgt: '10:00 AM',
-    stadium: 'NRG Stadium',
-    city: 'Houston, TX',
+    stadium: 'Kansas City Stadium',
+    city: 'Kansas City',
     status: 'upcoming',
     homeScore: 0,
     awayScore: 0,
@@ -358,8 +358,8 @@ const INITIAL_MATCHES: FootballMatch[] = [
     awayFlag: '🇦🇷',
     dateSgt: 'Sun, Jun 28',
     timeSgt: '10:00 AM',
-    stadium: 'AT&T Stadium',
-    city: 'Arlington, TX',
+    stadium: 'Dallas Stadium',
+    city: 'Dallas',
     status: 'upcoming',
     homeScore: 0,
     awayScore: 0,
@@ -423,80 +423,7 @@ const INITIAL_MATCHES: FootballMatch[] = [
   }
 ];
 
-const INITIAL_STANDINGS: Record<string, Standing[]> = {
-  'Group A': [
-    { team: 'Mexico', flag: '🇲🇽', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 5, goalsAgainst: 2, points: 7 },
-    { team: 'Switzerland', flag: '🇨🇭', played: 3, won: 1, drawn: 2, lost: 0, goalsFor: 4, goalsAgainst: 3, points: 5 },
-    { team: 'South Korea', flag: '🇰🇷', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 3, goalsAgainst: 3, points: 4 },
-    { team: 'South Africa', flag: '🇿🇦', played: 3, won: 0, drawn: 0, lost: 3, goalsFor: 1, goalsAgainst: 5, points: 0 },
-  ],
-  'Group B': [
-    { team: 'Brazil', flag: '🇧🇷', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 6, goalsAgainst: 2, points: 7 },
-    { team: 'Japan', flag: '🇯🇵', played: 3, won: 2, drawn: 0, lost: 1, goalsFor: 5, goalsAgainst: 3, points: 6 },
-    { team: 'Poland', flag: '🇵🇱', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 4, goalsAgainst: 4, points: 4 },
-    { team: 'Canada', flag: '🇨🇦', played: 3, won: 0, drawn: 0, lost: 3, goalsFor: 2, goalsAgainst: 8, points: 0 },
-  ],
-  'Group C': [
-    { team: 'Germany', flag: '🇩🇪', played: 3, won: 3, drawn: 0, lost: 0, goalsFor: 8, goalsAgainst: 2, points: 9 },
-    { team: 'United States', flag: '🇺🇸', played: 3, won: 1, drawn: 2, lost: 0, goalsFor: 4, goalsAgainst: 2, points: 5 },
-    { team: 'Morocco', flag: '🇲🇦', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 3, goalsAgainst: 3, points: 4 },
-    { team: 'Costa Rica', flag: '🇨🇷', played: 3, won: 0, drawn: 1, lost: 2, goalsFor: 1, goalsAgainst: 9, points: 1 },
-  ],
-  'Group D': [
-    { team: 'Netherlands', flag: '🇳🇱', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 5, goalsAgainst: 2, points: 7 },
-    { team: 'Nigeria', flag: '🇳🇬', played: 3, won: 1, drawn: 2, lost: 0, goalsFor: 4, goalsAgainst: 3, points: 5 },
-    { team: 'Chile', flag: '🇨🇱', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 3, goalsAgainst: 4, points: 4 },
-    { team: 'Tunisia', flag: '🇹🇳', played: 3, won: 0, drawn: 0, lost: 3, goalsFor: 2, goalsAgainst: 5, points: 0 },
-  ],
-  'Group E': [
-    { team: 'Italy', flag: '🇮🇹', played: 3, won: 3, drawn: 0, lost: 0, goalsFor: 7, goalsAgainst: 1, points: 9 },
-    { team: 'Ecuador', flag: '🇪🇨', played: 3, won: 2, drawn: 0, lost: 1, goalsFor: 5, goalsAgainst: 3, points: 6 },
-    { team: 'Cameroon', flag: '🇨🇲', played: 3, won: 1, drawn: 0, lost: 2, goalsFor: 3, goalsAgainst: 3, points: 3 },
-    { team: 'Qatar', flag: '🇶🇦', played: 3, won: 0, drawn: 0, lost: 3, goalsFor: 1, goalsAgainst: 9, points: 0 },
-  ],
-  'Group F': [
-    { team: 'Portugal', flag: '🇵🇹', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 6, goalsAgainst: 2, points: 7 },
-    { team: 'Denmark', flag: '🇩🇰', played: 3, won: 2, drawn: 0, lost: 1, goalsFor: 4, goalsAgainst: 3, points: 6 },
-    { team: 'Paraguay', flag: '🇵🇾', played: 3, won: 1, drawn: 0, lost: 2, goalsFor: 3, goalsAgainst: 4, points: 3 },
-    { team: 'Jamaica', flag: '🇯🇲', played: 3, won: 0, drawn: 1, lost: 2, goalsFor: 1, goalsAgainst: 5, points: 1 },
-  ],
-  'Group G': [
-    { team: 'Belgium', flag: '🇧🇪', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 6, goalsAgainst: 1, points: 7 },
-    { team: 'Egypt', flag: '🇪🇬', played: 3, won: 2, drawn: 0, lost: 1, goalsFor: 4, goalsAgainst: 3, points: 6 },
-    { team: 'Iran', flag: '🇮🇷', played: 3, won: 1, drawn: 0, lost: 2, goalsFor: 2, goalsAgainst: 4, points: 3 },
-    { team: 'New Zealand', flag: '🇳🇿', played: 3, won: 0, drawn: 1, lost: 2, goalsFor: 1, goalsAgainst: 5, points: 1 },
-  ],
-  'Group H': [
-    { team: 'Spain', flag: '🇪🇸', played: 3, won: 3, drawn: 0, lost: 0, goalsFor: 8, goalsAgainst: 3, points: 9 },
-    { team: 'Uruguay', flag: '🇺🇾', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 5, goalsAgainst: 4, points: 4 },
-    { team: 'Saudi Arabia', flag: '🇸🇦', played: 3, won: 0, drawn: 2, lost: 1, goalsFor: 2, goalsAgainst: 4, points: 2 },
-    { team: 'Cape Verde', flag: '🇨🇻', played: 3, won: 0, drawn: 1, lost: 2, goalsFor: 2, goalsAgainst: 6, points: 1 },
-  ],
-  'Group I': [
-    { team: 'France', flag: '🇫🇷', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 6, goalsAgainst: 2, points: 7 },
-    { team: 'Norway', flag: '🇳🇴', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 4, goalsAgainst: 3, points: 4 },
-    { team: 'Senegal', flag: '🇸🇳', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 3, goalsAgainst: 2, points: 4 },
-    { team: 'Iraq', flag: '🇮🇶', played: 3, won: 0, drawn: 1, lost: 2, goalsFor: 1, goalsAgainst: 7, points: 1 },
-  ],
-  'Group J': [
-    { team: 'Argentina', flag: '🇦🇷', played: 3, won: 3, drawn: 0, lost: 0, goalsFor: 9, goalsAgainst: 2, points: 9 },
-    { team: 'Austria', flag: '🇦🇹', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 4, goalsAgainst: 4, points: 4 },
-    { team: 'Algeria', flag: '🇩🇿', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 3, goalsAgainst: 4, points: 4 },
-    { team: 'Jordan', flag: '🇯🇴', played: 3, won: 0, drawn: 0, lost: 3, goalsFor: 1, goalsAgainst: 7, points: 0 },
-  ],
-  'Group K': [
-    { team: 'Colombia', flag: '🇨🇴', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 6, goalsAgainst: 3, points: 7 },
-    { team: 'Portugal', flag: '🇵🇹', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 5, goalsAgainst: 4, points: 4 },
-    { team: 'DR Congo', flag: '🇨🇩', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 4, goalsAgainst: 4, points: 4 },
-    { team: 'Uzbekistan', flag: '🇺🇿', played: 3, won: 0, drawn: 1, lost: 2, goalsFor: 2, goalsAgainst: 6, points: 1 },
-  ],
-  'Group L': [
-    { team: 'England', flag: '🏴', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 7, goalsAgainst: 2, points: 7 },
-    { team: 'Croatia', flag: '🇭🇷', played: 3, won: 1, drawn: 2, lost: 0, goalsFor: 4, goalsAgainst: 3, points: 5 },
-    { team: 'Ghana', flag: '🇬🇭', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 3, goalsAgainst: 3, points: 4 },
-    { team: 'Panama', flag: '🇵🇦', played: 3, won: 0, drawn: 0, lost: 3, goalsFor: 1, goalsAgainst: 7, points: 0 },
-  ],
-};
+const INITIAL_STANDINGS: Record<string, Standing[]> = buildStandingsFromMatches(INITIAL_MATCHES);
 
 const createInitialMatches = (now = new Date()): FootballMatch[] =>
   syncMatchStatuses(
@@ -512,7 +439,10 @@ const getDefaultSelectedMatchId = (matches: FootballMatch[]) =>
 
 export default function App() {
   const [matches, setMatches] = useState<FootballMatch[]>(() => createInitialMatches());
-  const [standings] = useState<Record<string, Standing[]>>(INITIAL_STANDINGS);
+  const standings = useMemo<Record<string, Standing[]>>(() => {
+    const derivedStandings = buildStandingsFromMatches(matches);
+    return Object.keys(derivedStandings).length > 0 ? derivedStandings : INITIAL_STANDINGS;
+  }, [matches]);
   const [selectedMatchId, setSelectedMatchId] = useState<string>(() => getDefaultSelectedMatchId(createInitialMatches()));
   const [activeTab, setActiveTab] = useState<'all' | 'live' | 'upcoming' | 'finished'>('all');
   const [activeView, setActiveView] = useState<'matches' | 'standings'>('matches');
@@ -521,6 +451,7 @@ export default function App() {
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
   const standingsSnapshot = useMemo(() => buildStandingsSnapshot(standings), [standings]);
+  const isThirdPlaceTableProvisional = standingsSnapshot.bestThirdPlaceTeams.length < 8;
   const selectedMatch = useMemo(
     () => matches.find((match) => match.id === selectedMatchId) ?? null,
     [matches, selectedMatchId],
@@ -1204,10 +1135,10 @@ export default function App() {
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
                   <h3 className="text-sm font-black tracking-wider text-slate-100 uppercase">
-                    Round of 32 Qualification Tracker
+                    Round of 32 Qualification Picture
                   </h3>
                   <p className="text-xs text-slate-400 mt-1">
-                    Top two teams in each group qualify automatically. The next best 8 third-placed teams also advance.
+                    Standings and third-place ranking are computed live from the official FIFA scorelines seeded in this app.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-wider">
@@ -1215,7 +1146,7 @@ export default function App() {
                     Auto-qualified
                   </span>
                   <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-amber-300">
-                    Best 3rd-place qualifier
+                    {isThirdPlaceTableProvisional ? 'Current 3rd-place team' : 'Best 3rd-place qualifier'}
                   </span>
                   <span className="rounded-full border border-slate-700 bg-slate-800 px-2.5 py-1 text-slate-400">
                     Eliminated / below cut line
@@ -1227,10 +1158,12 @@ export default function App() {
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
                 <h3 className="text-sm font-black tracking-wider text-slate-200 uppercase">
-                  Best 8 Third-Placed Teams
+                  {isThirdPlaceTableProvisional ? 'Current Third-Placed Teams' : 'Best 8 Third-Placed Teams'}
                 </h3>
                 <span className="text-[10px] bg-amber-500/10 text-amber-300 font-bold px-2 py-0.5 rounded">
-                  8 advance
+                  {isThirdPlaceTableProvisional
+                    ? `${standingsSnapshot.bestThirdPlaceTeams.length} tracked`
+                    : '8 advance'}
                 </span>
               </div>
 

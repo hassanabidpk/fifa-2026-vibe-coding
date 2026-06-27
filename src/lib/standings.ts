@@ -12,6 +12,17 @@ export interface Standing {
 
 export type QualificationStatus = 'qualified' | 'best-third' | 'eliminated';
 
+export interface GroupMatchLike {
+  group: string;
+  homeTeam: string;
+  awayTeam: string;
+  homeFlag: string;
+  awayFlag: string;
+  homeScore: number;
+  awayScore: number;
+  status: 'upcoming' | 'live' | 'finished';
+}
+
 export interface RankedStanding extends Standing {
   group: string;
   position: number;
@@ -56,6 +67,65 @@ const toRankedStanding = (
   goalDifference: team.goalsFor - team.goalsAgainst,
   qualificationStatus,
 });
+
+const createEmptyStanding = (team: string, flag: string): Standing => ({
+  team,
+  flag,
+  played: 0,
+  won: 0,
+  drawn: 0,
+  lost: 0,
+  goalsFor: 0,
+  goalsAgainst: 0,
+  points: 0,
+});
+
+const ensureTeamStanding = (groupTable: Record<string, Standing>, team: string, flag: string): Standing => {
+  groupTable[team] ??= createEmptyStanding(team, flag);
+  return groupTable[team];
+};
+
+const updateStandingFromScore = (team: Standing, goalsFor: number, goalsAgainst: number) => {
+  team.played += 1;
+  team.goalsFor += goalsFor;
+  team.goalsAgainst += goalsAgainst;
+
+  if (goalsFor > goalsAgainst) {
+    team.won += 1;
+    team.points += 3;
+    return;
+  }
+
+  if (goalsFor < goalsAgainst) {
+    team.lost += 1;
+    return;
+  }
+
+  team.drawn += 1;
+  team.points += 1;
+};
+
+export const buildStandingsFromMatches = (matches: GroupMatchLike[]): Record<string, Standing[]> => {
+  const standingsByGroup = matches.reduce<Record<string, Record<string, Standing>>>((groups, match) => {
+    if (!match.group.startsWith('Group ') || match.status === 'upcoming') {
+      return groups;
+    }
+
+    groups[match.group] ??= {};
+    const groupTable = groups[match.group];
+    const home = ensureTeamStanding(groupTable, match.homeTeam, match.homeFlag);
+    const away = ensureTeamStanding(groupTable, match.awayTeam, match.awayFlag);
+
+    updateStandingFromScore(home, match.homeScore, match.awayScore);
+    updateStandingFromScore(away, match.awayScore, match.homeScore);
+
+    return groups;
+  }, {});
+
+  return Object.fromEntries(
+    Object.entries(standingsByGroup).map(([group, teams]) => [group, Object.values(teams).sort(byTableOrder)]),
+  ) as Record<string, Standing[]>;
+};
 
 export const normalizeVenue = (stadium: string, city: string) => VENUE_NAME_MAP[stadium] ?? { stadium, city };
 

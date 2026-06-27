@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildStandingsFromMatches,
   buildStandingsSnapshot,
   normalizeVenue,
+  type GroupMatchLike,
   type Standing,
 } from './standings';
 
@@ -23,6 +25,56 @@ const createStanding = (
 });
 
 describe('standings', () => {
+  it('builds live group tables directly from played group-stage match scores', () => {
+    const matches: GroupMatchLike[] = [
+      { group: 'Group G', homeTeam: 'Egypt', awayTeam: 'Iran', homeFlag: '🇪🇬', awayFlag: '🇮🇷', homeScore: 1, awayScore: 1, status: 'finished' },
+      { group: 'Group G', homeTeam: 'New Zealand', awayTeam: 'Belgium', homeFlag: '🇳🇿', awayFlag: '🇧🇪', homeScore: 0, awayScore: 3, status: 'finished' },
+      { group: 'Group H', homeTeam: 'Cape Verde', awayTeam: 'Saudi Arabia', homeFlag: '🇨🇻', awayFlag: '🇸🇦', homeScore: 1, awayScore: 1, status: 'finished' },
+      { group: 'Group H', homeTeam: 'Uruguay', awayTeam: 'Spain', homeFlag: '🇺🇾', awayFlag: '🇪🇸', homeScore: 2, awayScore: 3, status: 'finished' },
+      { group: 'Round of 32', homeTeam: 'Winner Group A', awayTeam: 'Best 3rd Place Team', homeFlag: '🏆', awayFlag: '⚽', homeScore: 0, awayScore: 0, status: 'upcoming' },
+    ];
+
+    const tables = buildStandingsFromMatches(matches);
+
+    expect(Object.keys(tables)).toEqual(['Group G', 'Group H']);
+    expect(tables['Group G']).toEqual([
+      { team: 'Belgium', flag: '🇧🇪', played: 1, won: 1, drawn: 0, lost: 0, goalsFor: 3, goalsAgainst: 0, points: 3 },
+      { team: 'Egypt', flag: '🇪🇬', played: 1, won: 0, drawn: 1, lost: 0, goalsFor: 1, goalsAgainst: 1, points: 1 },
+      { team: 'Iran', flag: '🇮🇷', played: 1, won: 0, drawn: 1, lost: 0, goalsFor: 1, goalsAgainst: 1, points: 1 },
+      { team: 'New Zealand', flag: '🇳🇿', played: 1, won: 0, drawn: 0, lost: 1, goalsFor: 0, goalsAgainst: 3, points: 0 },
+    ]);
+    expect(tables['Group H'][0].team).toBe('Spain');
+    expect(tables['Group H'][2].team).toBe('Saudi Arabia');
+  });
+
+  it('ranks only currently available third-placed teams from the live group tables', () => {
+    const tables: Record<string, Standing[]> = {
+      'Group G': [
+        { team: 'Belgium', flag: '🇧🇪', played: 1, won: 1, drawn: 0, lost: 0, goalsFor: 3, goalsAgainst: 0, points: 3 },
+        { team: 'Egypt', flag: '🇪🇬', played: 1, won: 0, drawn: 1, lost: 0, goalsFor: 1, goalsAgainst: 1, points: 1 },
+        { team: 'Iran', flag: '🇮🇷', played: 1, won: 0, drawn: 1, lost: 0, goalsFor: 1, goalsAgainst: 1, points: 1 },
+        { team: 'New Zealand', flag: '🇳🇿', played: 1, won: 0, drawn: 0, lost: 1, goalsFor: 0, goalsAgainst: 3, points: 0 },
+      ],
+      'Group H': [
+        { team: 'Spain', flag: '🇪🇸', played: 1, won: 1, drawn: 0, lost: 0, goalsFor: 3, goalsAgainst: 2, points: 3 },
+        { team: 'Cape Verde', flag: '🇨🇻', played: 1, won: 0, drawn: 1, lost: 0, goalsFor: 1, goalsAgainst: 1, points: 1 },
+        { team: 'Saudi Arabia', flag: '🇸🇦', played: 1, won: 0, drawn: 1, lost: 0, goalsFor: 1, goalsAgainst: 1, points: 1 },
+        { team: 'Uruguay', flag: '🇺🇾', played: 1, won: 0, drawn: 0, lost: 1, goalsFor: 2, goalsAgainst: 3, points: 0 },
+      ],
+      'Group I': [
+        { team: 'Senegal', flag: '🇸🇳', played: 1, won: 1, drawn: 0, lost: 0, goalsFor: 2, goalsAgainst: 0, points: 3 },
+        { team: 'France', flag: '🇫🇷', played: 1, won: 1, drawn: 0, lost: 0, goalsFor: 2, goalsAgainst: 1, points: 3 },
+        { team: 'Norway', flag: '🇳🇴', played: 1, won: 0, drawn: 0, lost: 1, goalsFor: 1, goalsAgainst: 2, points: 0 },
+        { team: 'Iraq', flag: '🇮🇶', played: 1, won: 0, drawn: 0, lost: 1, goalsFor: 0, goalsAgainst: 2, points: 0 },
+      ],
+    };
+
+    const snapshot = buildStandingsSnapshot(tables);
+
+    expect(snapshot.bestThirdPlaceTeams.map((team: { team: string }) => team.team)).toEqual(['Iran', 'Saudi Arabia', 'Norway']);
+    expect(snapshot.bestThirdPlaceTeams).toHaveLength(3);
+  });
+
   it('normalizes host venues to FIFA 2026 display names', () => {
     expect(normalizeVenue('Mercedes-Benz Stadium', 'Atlanta, GA')).toEqual({
       stadium: 'Atlanta Stadium',
