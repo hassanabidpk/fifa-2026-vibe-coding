@@ -156,8 +156,16 @@ export const syncMatchStatuses = (matches: FootballMatch[], now: Date): Football
     }
 
     if (elapsedMinutes < 120) {
+      if (match.status === 'upcoming') {
+        return {
+          ...resetMatchState(match, 'live', Math.min(90, Math.max(1, elapsedMinutes))),
+        };
+      }
+
       return {
-        ...resetMatchState(match, 'live', Math.min(90, Math.max(1, elapsedMinutes))),
+        ...match,
+        status: 'live',
+        minute: Math.min(90, Math.max(1, elapsedMinutes)),
       };
     }
 

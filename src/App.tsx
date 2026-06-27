@@ -201,15 +201,16 @@ const INITIAL_MATCHES: FootballMatch[] = [
     city: 'Atlanta, GA',
     status: 'finished',
     homeScore: 1,
-    awayScore: 0,
+    awayScore: 1,
     minute: 90,
     events: [
+      { type: 'goal', time: 23, team: 'away', player: 'Mehdi Taremi', detail: 'Near-post finish on the counter' },
       { type: 'goal', time: 38, team: 'home', player: 'Mohamed Salah', detail: 'Trademark cut-inside and strike' },
     ],
     stats: {
       possession: [50, 50],
-      shots: [10, 8],
-      shotsOnTarget: [4, 2],
+      shots: [10, 9],
+      shotsOnTarget: [4, 3],
       corners: [5, 4],
       fouls: [10, 12]
     }

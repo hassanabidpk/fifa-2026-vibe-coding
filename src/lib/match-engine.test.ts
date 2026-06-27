@@ -125,7 +125,22 @@ describe('match-engine', () => {
 
   it('syncs hardcoded match statuses to the current SGT kickoff window', () => {
     const matches: FootballMatch[] = [
-      { ...baseMatch, id: 'm5', homeTeam: 'Egypt', awayTeam: 'Iran', dateSgt: 'Sat, Jun 27', timeSgt: '11:00 AM', status: 'finished', minute: 90, homeScore: 1, awayScore: 0 },
+      {
+        ...baseMatch,
+        id: 'm5',
+        homeTeam: 'Egypt',
+        awayTeam: 'Iran',
+        dateSgt: 'Sat, Jun 27',
+        timeSgt: '11:00 AM',
+        status: 'finished',
+        minute: 90,
+        homeScore: 1,
+        awayScore: 1,
+        events: [
+          { type: 'goal', time: 23, team: 'away', player: 'Mehdi Taremi' },
+          { type: 'goal', time: 38, team: 'home', player: 'Mohamed Salah' },
+        ],
+      },
       { ...baseMatch, id: 'm6', homeTeam: 'New Zealand', awayTeam: 'Belgium', dateSgt: 'Sat, Jun 27', timeSgt: '11:00 AM', status: 'finished', minute: 90, homeScore: 0, awayScore: 3 },
       { ...baseMatch, id: 'm7', homeTeam: 'Panama', awayTeam: 'England', dateSgt: 'Sun, Jun 28', timeSgt: '05:00 AM', status: 'live', minute: 54 },
       { ...baseMatch, id: 'm8', homeTeam: 'Croatia', awayTeam: 'Ghana', dateSgt: 'Sun, Jun 28', timeSgt: '05:00 AM', status: 'live', minute: 22 },
@@ -139,7 +154,8 @@ describe('match-engine', () => {
       ['m7', 'upcoming'],
       ['m8', 'upcoming'],
     ]);
-    expect(synced[0]).toMatchObject({ minute: 24, homeScore: 0, awayScore: 0, events: [] });
-    expect(synced[1]).toMatchObject({ minute: 24, homeScore: 0, awayScore: 0, events: [] });
+    expect(synced[0]).toMatchObject({ minute: 24, homeScore: 1, awayScore: 1 });
+    expect(synced[0].events).toEqual(matches[0].events);
+    expect(synced[1]).toMatchObject({ minute: 24, homeScore: 0, awayScore: 3 });
   });
 });
