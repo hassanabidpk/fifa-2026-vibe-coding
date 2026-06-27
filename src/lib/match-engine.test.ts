@@ -158,4 +158,25 @@ describe('match-engine', () => {
     expect(synced[0].events).toEqual(matches[0].events);
     expect(synced[1]).toMatchObject({ minute: 24, homeScore: 0, awayScore: 3 });
   });
+
+  it('holds the live clock at halftime and resumes the second half after the break', () => {
+    const match: FootballMatch = {
+      ...baseMatch,
+      id: 'm11',
+      homeTeam: 'Egypt',
+      awayTeam: 'Iran',
+      dateSgt: 'Sat, Jun 27',
+      timeSgt: '11:00 AM',
+      status: 'live',
+      minute: 70,
+      homeScore: 1,
+      awayScore: 1,
+    };
+
+    const duringHalftime = syncMatchStatuses([match], new Date('2026-06-27T11:53:00+08:00'))[0];
+    const inSecondHalf = syncMatchStatuses([match], new Date('2026-06-27T12:08:00+08:00'))[0];
+
+    expect(duringHalftime).toMatchObject({ status: 'live', minute: 45, homeScore: 1, awayScore: 1 });
+    expect(inSecondHalf).toMatchObject({ status: 'live', minute: 53, homeScore: 1, awayScore: 1 });
+  });
 });

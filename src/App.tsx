@@ -24,6 +24,11 @@ import {
   makeMatchLive,
   syncMatchStatuses,
 } from './lib/match-engine';
+import {
+  buildStandingsSnapshot,
+  normalizeVenue,
+  type Standing,
+} from './lib/standings';
 
 interface MatchEvent {
   type: 'goal' | 'card-yellow' | 'card-red' | 'sub';
@@ -60,17 +65,6 @@ interface FootballMatch {
   stats: MatchStats;
 }
 
-interface Standing {
-  team: string;
-  flag: string;
-  played: number;
-  won: number;
-  drawn: number;
-  lost: number;
-  goalsFor: number;
-  goalsAgainst: number;
-  points: number;
-}
 
 const INITIAL_MATCHES: FootballMatch[] = [
   // Finished Matches (June 27 SGT Morning / Yesterday)
@@ -430,11 +424,47 @@ const INITIAL_MATCHES: FootballMatch[] = [
 ];
 
 const INITIAL_STANDINGS: Record<string, Standing[]> = {
-  'Group I': [
-    { team: 'France', flag: '🇫🇷', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 6, goalsAgainst: 2, points: 7 },
-    { team: 'Norway', flag: '🇳🇴', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 4, goalsAgainst: 3, points: 4 },
-    { team: 'Senegal', flag: '🇸🇳', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 3, goalsAgainst: 2, points: 4 },
-    { team: 'Iraq', flag: '🇮🇶', played: 3, won: 0, drawn: 1, lost: 2, goalsFor: 1, goalsAgainst: 7, points: 1 },
+  'Group A': [
+    { team: 'Mexico', flag: '🇲🇽', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 5, goalsAgainst: 2, points: 7 },
+    { team: 'Switzerland', flag: '🇨🇭', played: 3, won: 1, drawn: 2, lost: 0, goalsFor: 4, goalsAgainst: 3, points: 5 },
+    { team: 'South Korea', flag: '🇰🇷', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 3, goalsAgainst: 3, points: 4 },
+    { team: 'South Africa', flag: '🇿🇦', played: 3, won: 0, drawn: 0, lost: 3, goalsFor: 1, goalsAgainst: 5, points: 0 },
+  ],
+  'Group B': [
+    { team: 'Brazil', flag: '🇧🇷', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 6, goalsAgainst: 2, points: 7 },
+    { team: 'Japan', flag: '🇯🇵', played: 3, won: 2, drawn: 0, lost: 1, goalsFor: 5, goalsAgainst: 3, points: 6 },
+    { team: 'Poland', flag: '🇵🇱', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 4, goalsAgainst: 4, points: 4 },
+    { team: 'Canada', flag: '🇨🇦', played: 3, won: 0, drawn: 0, lost: 3, goalsFor: 2, goalsAgainst: 8, points: 0 },
+  ],
+  'Group C': [
+    { team: 'Germany', flag: '🇩🇪', played: 3, won: 3, drawn: 0, lost: 0, goalsFor: 8, goalsAgainst: 2, points: 9 },
+    { team: 'United States', flag: '🇺🇸', played: 3, won: 1, drawn: 2, lost: 0, goalsFor: 4, goalsAgainst: 2, points: 5 },
+    { team: 'Morocco', flag: '🇲🇦', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 3, goalsAgainst: 3, points: 4 },
+    { team: 'Costa Rica', flag: '🇨🇷', played: 3, won: 0, drawn: 1, lost: 2, goalsFor: 1, goalsAgainst: 9, points: 1 },
+  ],
+  'Group D': [
+    { team: 'Netherlands', flag: '🇳🇱', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 5, goalsAgainst: 2, points: 7 },
+    { team: 'Nigeria', flag: '🇳🇬', played: 3, won: 1, drawn: 2, lost: 0, goalsFor: 4, goalsAgainst: 3, points: 5 },
+    { team: 'Chile', flag: '🇨🇱', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 3, goalsAgainst: 4, points: 4 },
+    { team: 'Tunisia', flag: '🇹🇳', played: 3, won: 0, drawn: 0, lost: 3, goalsFor: 2, goalsAgainst: 5, points: 0 },
+  ],
+  'Group E': [
+    { team: 'Italy', flag: '🇮🇹', played: 3, won: 3, drawn: 0, lost: 0, goalsFor: 7, goalsAgainst: 1, points: 9 },
+    { team: 'Ecuador', flag: '🇪🇨', played: 3, won: 2, drawn: 0, lost: 1, goalsFor: 5, goalsAgainst: 3, points: 6 },
+    { team: 'Cameroon', flag: '🇨🇲', played: 3, won: 1, drawn: 0, lost: 2, goalsFor: 3, goalsAgainst: 3, points: 3 },
+    { team: 'Qatar', flag: '🇶🇦', played: 3, won: 0, drawn: 0, lost: 3, goalsFor: 1, goalsAgainst: 9, points: 0 },
+  ],
+  'Group F': [
+    { team: 'Portugal', flag: '🇵🇹', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 6, goalsAgainst: 2, points: 7 },
+    { team: 'Denmark', flag: '🇩🇰', played: 3, won: 2, drawn: 0, lost: 1, goalsFor: 4, goalsAgainst: 3, points: 6 },
+    { team: 'Paraguay', flag: '🇵🇾', played: 3, won: 1, drawn: 0, lost: 2, goalsFor: 3, goalsAgainst: 4, points: 3 },
+    { team: 'Jamaica', flag: '🇯🇲', played: 3, won: 0, drawn: 1, lost: 2, goalsFor: 1, goalsAgainst: 5, points: 1 },
+  ],
+  'Group G': [
+    { team: 'Belgium', flag: '🇧🇪', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 6, goalsAgainst: 1, points: 7 },
+    { team: 'Egypt', flag: '🇪🇬', played: 3, won: 2, drawn: 0, lost: 1, goalsFor: 4, goalsAgainst: 3, points: 6 },
+    { team: 'Iran', flag: '🇮🇷', played: 3, won: 1, drawn: 0, lost: 2, goalsFor: 2, goalsAgainst: 4, points: 3 },
+    { team: 'New Zealand', flag: '🇳🇿', played: 3, won: 0, drawn: 1, lost: 2, goalsFor: 1, goalsAgainst: 5, points: 1 },
   ],
   'Group H': [
     { team: 'Spain', flag: '🇪🇸', played: 3, won: 3, drawn: 0, lost: 0, goalsFor: 8, goalsAgainst: 3, points: 9 },
@@ -442,15 +472,40 @@ const INITIAL_STANDINGS: Record<string, Standing[]> = {
     { team: 'Saudi Arabia', flag: '🇸🇦', played: 3, won: 0, drawn: 2, lost: 1, goalsFor: 2, goalsAgainst: 4, points: 2 },
     { team: 'Cape Verde', flag: '🇨🇻', played: 3, won: 0, drawn: 1, lost: 2, goalsFor: 2, goalsAgainst: 6, points: 1 },
   ],
-  'Group G': [
-    { team: 'Belgium', flag: '🇧🇪', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 6, goalsAgainst: 1, points: 7 },
-    { team: 'Egypt', flag: '🇪🇬', played: 3, won: 2, drawn: 0, lost: 1, goalsFor: 4, goalsAgainst: 3, points: 6 },
-    { team: 'Iran', flag: '🇮🇷', played: 3, won: 1, drawn: 0, lost: 2, goalsFor: 2, goalsAgainst: 4, points: 3 },
-    { team: 'New Zealand', flag: '🇳🇿', played: 3, won: 0, drawn: 1, lost: 2, goalsFor: 1, goalsAgainst: 5, points: 1 },
-  ]
+  'Group I': [
+    { team: 'France', flag: '🇫🇷', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 6, goalsAgainst: 2, points: 7 },
+    { team: 'Norway', flag: '🇳🇴', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 4, goalsAgainst: 3, points: 4 },
+    { team: 'Senegal', flag: '🇸🇳', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 3, goalsAgainst: 2, points: 4 },
+    { team: 'Iraq', flag: '🇮🇶', played: 3, won: 0, drawn: 1, lost: 2, goalsFor: 1, goalsAgainst: 7, points: 1 },
+  ],
+  'Group J': [
+    { team: 'Argentina', flag: '🇦🇷', played: 3, won: 3, drawn: 0, lost: 0, goalsFor: 9, goalsAgainst: 2, points: 9 },
+    { team: 'Austria', flag: '🇦🇹', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 4, goalsAgainst: 4, points: 4 },
+    { team: 'Algeria', flag: '🇩🇿', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 3, goalsAgainst: 4, points: 4 },
+    { team: 'Jordan', flag: '🇯🇴', played: 3, won: 0, drawn: 0, lost: 3, goalsFor: 1, goalsAgainst: 7, points: 0 },
+  ],
+  'Group K': [
+    { team: 'Colombia', flag: '🇨🇴', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 6, goalsAgainst: 3, points: 7 },
+    { team: 'Portugal', flag: '🇵🇹', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 5, goalsAgainst: 4, points: 4 },
+    { team: 'DR Congo', flag: '🇨🇩', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 4, goalsAgainst: 4, points: 4 },
+    { team: 'Uzbekistan', flag: '🇺🇿', played: 3, won: 0, drawn: 1, lost: 2, goalsFor: 2, goalsAgainst: 6, points: 1 },
+  ],
+  'Group L': [
+    { team: 'England', flag: '🏴', played: 3, won: 2, drawn: 1, lost: 0, goalsFor: 7, goalsAgainst: 2, points: 7 },
+    { team: 'Croatia', flag: '🇭🇷', played: 3, won: 1, drawn: 2, lost: 0, goalsFor: 4, goalsAgainst: 3, points: 5 },
+    { team: 'Ghana', flag: '🇬🇭', played: 3, won: 1, drawn: 1, lost: 1, goalsFor: 3, goalsAgainst: 3, points: 4 },
+    { team: 'Panama', flag: '🇵🇦', played: 3, won: 0, drawn: 0, lost: 3, goalsFor: 1, goalsAgainst: 7, points: 0 },
+  ],
 };
 
-const createInitialMatches = (now = new Date()): FootballMatch[] => syncMatchStatuses(INITIAL_MATCHES, now);
+const createInitialMatches = (now = new Date()): FootballMatch[] =>
+  syncMatchStatuses(
+    INITIAL_MATCHES.map((match) => ({
+      ...match,
+      ...normalizeVenue(match.stadium, match.city),
+    })),
+    now,
+  );
 
 const getDefaultSelectedMatchId = (matches: FootballMatch[]) =>
   matches.find((match) => match.status === 'live')?.id ?? matches[0]?.id ?? '';
@@ -465,6 +520,7 @@ export default function App() {
   const [simIsRunning, setSimIsRunning] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
+  const standingsSnapshot = useMemo(() => buildStandingsSnapshot(standings), [standings]);
   const selectedMatch = useMemo(
     () => matches.find((match) => match.id === selectedMatchId) ?? null,
     [matches, selectedMatchId],
@@ -517,6 +573,18 @@ export default function App() {
   const showToast = useCallback((msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 4000);
+  }, []);
+
+  // Keep live statuses and minutes aligned to the real SGT clock
+  useEffect(() => {
+    const syncNow = () => {
+      setMatches((prevMatches) => syncMatchStatuses(prevMatches, new Date()));
+    };
+
+    syncNow();
+    const interval = setInterval(syncNow, 15000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Real-time ticking simulation for live matches
@@ -1131,61 +1199,154 @@ export default function App() {
           </div>
         ) : (
           /* GROUP STANDINGS VIEW */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
-            {Object.entries(standings).map(([groupName, groupTeams]) => (
-              <div key={groupName} className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-                  <h3 className="text-sm font-black tracking-wider text-slate-200 uppercase">
-                    {groupName} Standing
+          <div className="space-y-6 animate-fadeIn">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h3 className="text-sm font-black tracking-wider text-slate-100 uppercase">
+                    Round of 32 Qualification Tracker
                   </h3>
-                  <span className="text-[10px] bg-indigo-500/10 text-indigo-400 font-bold px-2 py-0.5 rounded">
-                    Live Calc
+                  <p className="text-xs text-slate-400 mt-1">
+                    Top two teams in each group qualify automatically. The next best 8 third-placed teams also advance.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-wider">
+                  <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-emerald-300">
+                    Auto-qualified
+                  </span>
+                  <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-amber-300">
+                    Best 3rd-place qualifier
+                  </span>
+                  <span className="rounded-full border border-slate-700 bg-slate-800 px-2.5 py-1 text-slate-400">
+                    Eliminated / below cut line
                   </span>
                 </div>
+              </div>
+            </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs font-semibold text-left">
-                    <thead>
-                      <tr className="text-slate-500 font-black uppercase text-[10px]">
-                        <th className="py-2">Pos</th>
-                        <th className="py-2">Team</th>
-                        <th className="py-2 text-center">PL</th>
-                        <th className="py-2 text-center">GD</th>
-                        <th className="py-2 text-right">PTS</th>
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                <h3 className="text-sm font-black tracking-wider text-slate-200 uppercase">
+                  Best 8 Third-Placed Teams
+                </h3>
+                <span className="text-[10px] bg-amber-500/10 text-amber-300 font-bold px-2 py-0.5 rounded">
+                  8 advance
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs font-semibold text-left">
+                  <thead>
+                    <tr className="text-slate-500 font-black uppercase text-[10px]">
+                      <th className="py-2">Rank</th>
+                      <th className="py-2">Team</th>
+                      <th className="py-2">Group</th>
+                      <th className="py-2 text-center">GD</th>
+                      <th className="py-2 text-right">PTS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/40">
+                    {standingsSnapshot.bestThirdPlaceTeams.map((team, index) => (
+                      <tr key={`${team.group}-${team.team}`} className="bg-amber-500/5 text-slate-200">
+                        <td className="py-3">
+                          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 text-[10px] font-black text-amber-300">
+                            {index + 1}
+                          </span>
+                        </td>
+                        <td className="py-3 font-extrabold">
+                          <span className="mr-1.5 select-none text-base">{team.flag}</span>
+                          {team.team}
+                        </td>
+                        <td className="py-3 text-slate-400">{team.group}</td>
+                        <td className="py-3 text-center text-slate-400">
+                          {team.goalDifference > 0 ? '+' : ''}
+                          {team.goalDifference}
+                        </td>
+                        <td className="py-3 text-right font-black text-white">{team.points}</td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800/40">
-                      {groupTeams
-                        .sort((a, b) => b.points - a.points || (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst))
-                        .map((team, index) => {
-                          const isTopTwo = index < 2;
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {Object.entries(standingsSnapshot.groups).map(([groupName, groupTeams]) => (
+                <div key={groupName} className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                    <h3 className="text-sm font-black tracking-wider text-slate-200 uppercase">
+                      {groupName} Standing
+                    </h3>
+                    <span className="text-[10px] bg-indigo-500/10 text-indigo-400 font-bold px-2 py-0.5 rounded">
+                      Live Calc
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs font-semibold text-left">
+                      <thead>
+                        <tr className="text-slate-500 font-black uppercase text-[10px]">
+                          <th className="py-2">Pos</th>
+                          <th className="py-2">Team</th>
+                          <th className="py-2 text-center">PL</th>
+                          <th className="py-2 text-center">GD</th>
+                          <th className="py-2 text-right">PTS</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/40">
+                        {groupTeams.map((team) => {
+                          const rowTone =
+                            team.qualificationStatus === 'qualified'
+                              ? 'bg-emerald-500/8'
+                              : team.qualificationStatus === 'best-third'
+                                ? 'bg-amber-500/8'
+                                : '';
+                          const badgeTone =
+                            team.qualificationStatus === 'qualified'
+                              ? 'bg-emerald-500/20 text-emerald-300'
+                              : team.qualificationStatus === 'best-third'
+                                ? 'bg-amber-500/20 text-amber-300'
+                                : 'bg-slate-800 text-slate-500';
+
                           return (
-                            <tr key={team.team} className="text-slate-300 hover:bg-slate-850/50">
+                            <tr key={team.team} className={`text-slate-300 hover:bg-slate-850/50 ${rowTone}`}>
                               <td className="py-3">
-                                <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ${
-                                  isTopTwo ? 'bg-indigo-600/20 text-indigo-400' : 'bg-slate-800 text-slate-500'
-                                }`}>
-                                  {index + 1}
+                                <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ${badgeTone}`}>
+                                  {team.position}
                                 </span>
                               </td>
                               <td className="py-3 font-extrabold text-slate-200">
-                                <span className="mr-1.5 select-none text-base">{team.flag}</span>
-                                {team.team}
+                                <div className="flex items-center justify-between gap-2">
+                                  <span>
+                                    <span className="mr-1.5 select-none text-base">{team.flag}</span>
+                                    {team.team}
+                                  </span>
+                                  {team.qualificationStatus === 'qualified' ? (
+                                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[9px] uppercase tracking-widest text-emerald-300">
+                                      R32
+                                    </span>
+                                  ) : team.qualificationStatus === 'best-third' ? (
+                                    <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[9px] uppercase tracking-widest text-amber-300">
+                                      Best 3rd
+                                    </span>
+                                  ) : null}
+                                </div>
                               </td>
                               <td className="py-3 text-center text-slate-400">{team.played}</td>
                               <td className="py-3 text-center text-slate-400">
-                                {team.goalsFor - team.goalsAgainst > 0 ? '+' : ''}
-                                {team.goalsFor - team.goalsAgainst}
+                                {team.goalDifference > 0 ? '+' : ''}
+                                {team.goalDifference}
                               </td>
                               <td className="py-3 text-right font-black text-white">{team.points}</td>
                             </tr>
                           );
                         })}
-                    </tbody>
-                  </table>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </main>

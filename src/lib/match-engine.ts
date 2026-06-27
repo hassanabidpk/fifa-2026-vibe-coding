@@ -102,6 +102,22 @@ const cloneStats = (stats: MatchStats): MatchStats => ({
   fouls: [...stats.fouls] as [number, number],
 });
 
+const toMatchMinute = (elapsedMinutes: number) => {
+  if (elapsedMinutes <= 0) {
+    return 1;
+  }
+
+  if (elapsedMinutes <= 45) {
+    return elapsedMinutes;
+  }
+
+  if (elapsedMinutes <= 60) {
+    return 45;
+  }
+
+  return Math.min(90, elapsedMinutes - 15);
+};
+
 const createGoalScorer = (match: FootballMatch, scoringTeam: 'home' | 'away') => {
   if (scoringTeam === 'home') {
     return match.homeTeam === 'Panama' ? 'Cecilio Waterman' : 'Inaki Williams';
@@ -158,14 +174,14 @@ export const syncMatchStatuses = (matches: FootballMatch[], now: Date): Football
     if (elapsedMinutes < 120) {
       if (match.status === 'upcoming') {
         return {
-          ...resetMatchState(match, 'live', Math.min(90, Math.max(1, elapsedMinutes))),
+          ...resetMatchState(match, 'live', toMatchMinute(elapsedMinutes)),
         };
       }
 
       return {
         ...match,
         status: 'live',
-        minute: Math.min(90, Math.max(1, elapsedMinutes)),
+        minute: toMatchMinute(elapsedMinutes),
       };
     }
 
