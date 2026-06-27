@@ -14,7 +14,9 @@ import {
   VolumeX,
   Play,
   Pause,
-  PlusCircle
+  PlusCircle,
+  Moon,
+  Sun,
 } from 'lucide-react';
 import {
   advanceLiveMatch,
@@ -24,12 +26,17 @@ import {
   makeMatchLive,
   syncMatchStatuses,
 } from './lib/match-engine';
+import { buildKnockoutBracket } from './lib/bracket';
+import { OFFICIAL_FIFA_STANDINGS_TEXT } from './data/fifa-standings';
+import { parseFifaStandingsText } from './lib/fifa-standings';
+import { getThemeTokens, type ThemeMode } from './lib/theme';
 import {
   buildStandingsFromMatches,
   buildStandingsSnapshot,
   normalizeVenue,
   type Standing,
 } from './lib/standings';
+import './App.css';
 
 interface MatchEvent {
   type: 'goal' | 'card-yellow' | 'card-red' | 'sub';
@@ -1422,6 +1429,31 @@ const INITIAL_MATCHES: FootballMatch[] = [
 
 const INITIAL_STANDINGS: Record<string, Standing[]> = buildStandingsFromMatches(INITIAL_MATCHES);
 
+const OFFICIAL_FIFA_STANDINGS = parseFifaStandingsText(OFFICIAL_FIFA_STANDINGS_TEXT);
+const TEAM_FLAG_LOOKUP = Object.fromEntries(
+  INITIAL_MATCHES.flatMap((match) => [
+    [match.homeTeam, match.homeFlag],
+    [match.awayTeam, match.awayFlag],
+  ]),
+) as Record<string, string>;
+
+const OFFICIAL_STANDINGS: Record<string, Standing[]> = Object.fromEntries(
+  Object.entries(OFFICIAL_FIFA_STANDINGS.groups).map(([group, teams]) => [
+    group,
+    teams.map((team) => ({
+      team: team.team,
+      flag: TEAM_FLAG_LOOKUP[team.team] ?? '🏳️',
+      played: team.played,
+      won: team.won,
+      drawn: team.drawn,
+      lost: team.lost,
+      goalsFor: team.goalsFor,
+      goalsAgainst: team.goalsAgainst,
+      points: team.points,
+    })),
+  ]),
+);
+
 const createInitialMatches = (now = new Date()): FootballMatch[] =>
   syncMatchStatuses(
     INITIAL_MATCHES.map((match) => ({
@@ -1436,18 +1468,21 @@ const getDefaultSelectedMatchId = (matches: FootballMatch[]) =>
 
 export default function App() {
   const [matches, setMatches] = useState<FootballMatch[]>(() => createInitialMatches());
-  const standings = useMemo<Record<string, Standing[]>>(() => {
-    const derivedStandings = buildStandingsFromMatches(matches);
-    return Object.keys(derivedStandings).length > 0 ? derivedStandings : INITIAL_STANDINGS;
-  }, [matches]);
+  const standings = useMemo<Record<string, Standing[]>>(
+    () => (Object.keys(OFFICIAL_STANDINGS).length > 0 ? OFFICIAL_STANDINGS : INITIAL_STANDINGS),
+    [],
+  );
   const [selectedMatchId, setSelectedMatchId] = useState<string>(() => getDefaultSelectedMatchId(createInitialMatches()));
   const [activeTab, setActiveTab] = useState<'all' | 'live' | 'upcoming' | 'finished'>('all');
-  const [activeView, setActiveView] = useState<'matches' | 'standings'>('matches');
+  const [activeView, setActiveView] = useState<'matches' | 'standings' | 'knockout'>('matches');
+  const [theme, setTheme] = useState<ThemeMode>('dark');
   const [searchQuery, setSearchQuery] = useState('');
   const [simIsRunning, setSimIsRunning] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
+  const themeTokens = useMemo(() => getThemeTokens(theme), [theme]);
   const standingsSnapshot = useMemo(() => buildStandingsSnapshot(standings), [standings]);
+  const knockoutBracket = useMemo(() => buildKnockoutBracket(standingsSnapshot), [standingsSnapshot]);
   const isThirdPlaceTableProvisional = standingsSnapshot.thirdPlaceTeams.length < 12;
   const selectedMatch = useMemo(
     () => matches.find((match) => match.id === selectedMatchId) ?? null,
@@ -1587,7 +1622,7 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
+    <div data-theme={theme} className={`app-shell min-h-screen font-sans antialiased ${themeTokens.root}`}>
       {/* Toast Alert Banner */}
       {toast && (
         <div className="fixed top-4 right-4 z-50 flex items-center gap-3 bg-indigo-600 text-white font-semibold py-3 px-5 rounded-2xl shadow-2xl border border-indigo-400 animate-bounce">
@@ -1597,7 +1632,7 @@ export default function App() {
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80">
+      <header className={`sticky top-0 z-40 backdrop-blur-md border-b ${themeTokens.surface}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="bg-gradient-to-tr from-indigo-500 to-rose-500 p-2.5 rounded-xl text-white shadow-lg shadow-indigo-500/20">
@@ -1619,6 +1654,15 @@ export default function App() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition ${themeTokens.pill}`}
+              title={theme === 'dark' ? 'Switch to Light UI' : 'Switch to Dark UI'}
+            >
+              {theme === 'dark' ? <Sun className="h-3.5 w-3.5 text-amber-400" /> : <Moon className="h-3.5 w-3.5 text-indigo-500" />}
+              {theme === 'dark' ? 'Light UI' : 'Dark UI'}
+            </button>
+
             <button
               onClick={() => setAudioEnabled(!audioEnabled)}
               className={`p-2 rounded-xl border transition ${
@@ -1688,6 +1732,16 @@ export default function App() {
             >
               Group Standings
             </button>
+            <button
+              onClick={() => setActiveView('knockout')}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition ${
+                activeView === 'knockout'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/15'
+                  : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-850'
+              }`}
+            >
+              Knockout Bracket
+            </button>
           </div>
 
           <div className="text-right hidden sm:block">
@@ -1713,7 +1767,7 @@ export default function App() {
                     placeholder="Search teams, groups..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-850 pl-10 pr-4 py-2 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
+                    className={`w-full rounded-xl border pl-10 pr-4 py-2 text-xs focus:outline-none focus:border-indigo-500 transition ${themeTokens.input}`}
                   />
                 </div>
 
@@ -2125,7 +2179,7 @@ export default function App() {
               )}
             </div>
           </div>
-        ) : (
+        ) : activeView === 'standings' ? (
           /* GROUP STANDINGS VIEW */
           <div className="space-y-6 animate-fadeIn">
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
@@ -2135,7 +2189,7 @@ export default function App() {
                     Round of 32 Qualification Picture
                   </h3>
                   <p className="text-xs text-slate-400 mt-1">
-                    Standings and third-place ranking are computed live from the official FIFA scorelines seeded in this app.
+                    Standings are sourced from the official FIFA standings page and should be treated as the gold-standard table.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-wider">
@@ -2215,7 +2269,7 @@ export default function App() {
                       {groupName} Standing
                     </h3>
                     <span className="text-[10px] bg-indigo-500/10 text-indigo-400 font-bold px-2 py-0.5 rounded">
-                      Live Calc
+                      FIFA Live
                     </span>
                   </div>
 
@@ -2282,6 +2336,70 @@ export default function App() {
                     </table>
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6 animate-fadeIn">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h3 className="text-sm font-black tracking-wider text-slate-100 uppercase">
+                    Projected Knockout Bracket
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Projection seeded from the official FIFA standings page: group winners, runners-up, and the current best eight third-placed teams.
+                  </p>
+                </div>
+                <span className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-indigo-300">
+                  Auto-updates when standings data refreshes
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {knockoutBracket.map((round) => (
+                <section key={round.name} className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                    <h3 className="text-sm font-black tracking-wider text-slate-200 uppercase">{round.name}</h3>
+                    <span className="text-[10px] bg-slate-800 text-slate-300 font-bold px-2 py-0.5 rounded">
+                      {round.matches.length} ties
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {round.matches.map((match) => (
+                      <article key={match.id} className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
+                        <div className="mb-3 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-500">
+                          <span>{match.id}</span>
+                          <span>{round.name}</span>
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-900/80 px-3 py-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-xl">{match.homeFlag}</span>
+                              <div className="min-w-0">
+                                <div className="truncate text-sm font-extrabold text-slate-100">{match.homeTeam}</div>
+                                <div className="truncate text-[10px] text-slate-400 uppercase tracking-wider">{match.homeLabel}</div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">vs</div>
+                          <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-900/80 px-3 py-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-xl">{match.awayFlag}</span>
+                              <div className="min-w-0">
+                                <div className="truncate text-sm font-extrabold text-slate-100">{match.awayTeam}</div>
+                                <div className="truncate text-[10px] text-slate-400 uppercase tracking-wider">{match.awayLabel}</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </section>
               ))}
             </div>
           </div>
