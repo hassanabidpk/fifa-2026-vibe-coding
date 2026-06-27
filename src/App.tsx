@@ -22,6 +22,7 @@ import {
   filterMatches,
   injectManualGoal,
   makeMatchLive,
+  syncMatchStatuses,
 } from './lib/match-engine';
 
 interface MatchEvent {
@@ -448,10 +449,15 @@ const INITIAL_STANDINGS: Record<string, Standing[]> = {
   ]
 };
 
+const createInitialMatches = (now = new Date()): FootballMatch[] => syncMatchStatuses(INITIAL_MATCHES, now);
+
+const getDefaultSelectedMatchId = (matches: FootballMatch[]) =>
+  matches.find((match) => match.status === 'live')?.id ?? matches[0]?.id ?? '';
+
 export default function App() {
-  const [matches, setMatches] = useState<FootballMatch[]>(INITIAL_MATCHES);
+  const [matches, setMatches] = useState<FootballMatch[]>(() => createInitialMatches());
   const [standings] = useState<Record<string, Standing[]>>(INITIAL_STANDINGS);
-  const [selectedMatchId, setSelectedMatchId] = useState<string>(INITIAL_MATCHES[6].id); // default to Live Panama vs England
+  const [selectedMatchId, setSelectedMatchId] = useState<string>(() => getDefaultSelectedMatchId(createInitialMatches()));
   const [activeTab, setActiveTab] = useState<'all' | 'live' | 'upcoming' | 'finished'>('all');
   const [activeView, setActiveView] = useState<'matches' | 'standings'>('matches');
   const [searchQuery, setSearchQuery] = useState('');
@@ -570,9 +576,10 @@ export default function App() {
 
   // Reset all simulation scores
   const resetSimulation = () => {
-    setMatches(INITIAL_MATCHES);
-    setSelectedMatchId(INITIAL_MATCHES[6].id);
-    showToast('🔄 Simulation reset to initial June 27/28 state.');
+    const initialMatches = createInitialMatches();
+    setMatches(initialMatches);
+    setSelectedMatchId(getDefaultSelectedMatchId(initialMatches));
+    showToast('🔄 Simulation reset to the current SGT schedule state.');
     playAlert('whistle');
   };
 

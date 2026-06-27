@@ -58,6 +58,42 @@ const createEmptyStats = (): MatchStats => ({
   fouls: [0, 0],
 });
 
+const MONTH_TO_NUMBER: Record<string, string> = {
+  Jan: '01',
+  Feb: '02',
+  Mar: '03',
+  Apr: '04',
+  May: '05',
+  Jun: '06',
+  Jul: '07',
+  Aug: '08',
+  Sep: '09',
+  Oct: '10',
+  Nov: '11',
+  Dec: '12',
+};
+
+const resetMatchState = (match: FootballMatch, status: FootballMatch['status'], minute: number): FootballMatch => ({
+  ...match,
+  status,
+  minute,
+  homeScore: 0,
+  awayScore: 0,
+  events: [],
+  stats: createEmptyStats(),
+});
+
+const parseSgtKickoff = (match: Pick<FootballMatch, 'dateSgt' | 'timeSgt'>, year: number) => {
+  const [, month, day] = match.dateSgt.split(' ');
+  const [time, meridiem] = match.timeSgt.split(' ');
+  const [rawHour, minute] = time.split(':').map(Number);
+  const normalizedHour = meridiem === 'PM'
+    ? rawHour === 12 ? 12 : rawHour + 12
+    : rawHour === 12 ? 0 : rawHour;
+
+  return new Date(`${year}-${MONTH_TO_NUMBER[month]}-${day}T${String(normalizedHour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00+08:00`);
+};
+
 const cloneStats = (stats: MatchStats): MatchStats => ({
   possession: [...stats.possession] as [number, number],
   shots: [...stats.shots] as [number, number],
@@ -100,6 +136,40 @@ export const filterMatches = (matches: FootballMatch[], query: string, activeTab
     }
 
     return activeTab === 'all' ? true : match.status === activeTab;
+  });
+};
+
+export const syncMatchStatuses = (matches: FootballMatch[], now: Date): FootballMatch[] => {
+  const currentYear = Number(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Singapore',
+      year: 'numeric',
+    }).format(now),
+  );
+
+  return matches.map((match) => {
+    const kickoff = parseSgtKickoff(match, currentYear);
+    const elapsedMinutes = Math.floor((now.getTime() - kickoff.getTime()) / 60000);
+
+    if (elapsedMinutes < 0) {
+      return resetMatchState(match, 'upcoming', 0);
+    }
+
+    if (elapsedMinutes < 120) {
+      return {
+        ...resetMatchState(match, 'live', Math.min(90, Math.max(1, elapsedMinutes))),
+      };
+    }
+
+    if (match.status === 'finished') {
+      return match;
+    }
+
+    return {
+      ...match,
+      status: 'finished',
+      minute: 90,
+    };
   });
 };
 
