@@ -976,9 +976,9 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "",
     "stadium": "Kansas City Stadium",
     "city": "",
-    "status": "upcoming",
-    "homeScore": 0,
-    "awayScore": 0
+    "status": "finished",
+    "homeScore": 3,
+    "awayScore": 3
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289273/400021495",
@@ -990,9 +990,9 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "",
     "stadium": "Dallas Stadium",
     "city": "",
-    "status": "upcoming",
-    "homeScore": 0,
-    "awayScore": 0
+    "status": "finished",
+    "homeScore": 1,
+    "awayScore": 3
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289273/400021505",
@@ -1181,7 +1181,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 84,
     "group": "Round of 32",
     "homeTeam": "Spain",
-    "awayTeam": "Group J runners-up",
+    "awayTeam": "Austria",
     "dateSgt": "Fri, Jul 3",
     "timeSgt": "03:00 AM",
     "stadium": "Los Angeles Stadium",
@@ -1195,7 +1195,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 85,
     "group": "Round of 32",
     "homeTeam": "Switzerland",
-    "awayTeam": "Group E/F/G/I/J third place",
+    "awayTeam": "Algeria",
     "dateSgt": "Fri, Jul 3",
     "timeSgt": "11:00 AM",
     "stadium": "BC Place Vancouver",
