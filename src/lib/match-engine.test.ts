@@ -130,4 +130,28 @@ describe('match-engine', () => {
 
     expect(synced).toMatchObject({ status: 'live', minute: 31, homeScore: 0, awayScore: 2 });
   });
+
+  it('correctly parses and syncs matches with single-digit day numbers in July', () => {
+    const matches: FootballMatch[] = [
+      {
+        ...baseMatch,
+        id: 'm100',
+        homeTeam: 'France',
+        awayTeam: 'Sweden',
+        dateSgt: 'Wed, Jul 1',
+        timeSgt: '05:00 AM',
+        status: 'upcoming',
+      },
+    ];
+
+    const syncedBefore = syncMatchStatuses(matches, new Date('2026-06-29T12:00:00+08:00'))[0];
+    expect(syncedBefore.status).toBe('upcoming');
+
+    const syncedDuring = syncMatchStatuses(matches, new Date('2026-07-01T05:30:00+08:00'))[0];
+    expect(syncedDuring.status).toBe('live');
+    expect(syncedDuring.minute).toBe(30);
+
+    const syncedAfter = syncMatchStatuses(matches, new Date('2026-07-01T10:00:00+08:00'))[0];
+    expect(syncedAfter.status).toBe('finished');
+  });
 });

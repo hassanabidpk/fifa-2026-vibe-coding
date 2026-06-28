@@ -40,13 +40,14 @@ const updateMatchClockState = (match: FootballMatch, status: FootballMatch['stat
 
 const parseSgtKickoff = (match: Pick<FootballMatch, 'dateSgt' | 'timeSgt'>, year: number) => {
   const [, month, day] = match.dateSgt.split(' ');
+  const paddedDay = String(day || '').padStart(2, '0');
   const [time, meridiem] = match.timeSgt.split(' ');
   const [rawHour, minute] = time.split(':').map(Number);
   const normalizedHour = meridiem === 'PM'
     ? rawHour === 12 ? 12 : rawHour + 12
     : rawHour === 12 ? 0 : rawHour;
 
-  return new Date(`${year}-${MONTH_TO_NUMBER[month]}-${day}T${String(normalizedHour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00+08:00`);
+  return new Date(`${year}-${MONTH_TO_NUMBER[month]}-${paddedDay}T${String(normalizedHour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00+08:00`);
 };
 
 const toMatchMinute = (elapsedMinutes: number) => {
