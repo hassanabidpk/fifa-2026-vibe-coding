@@ -70,6 +70,8 @@ def dump_dom(chrome_bin: str, url: str, *, budget_ms: int = 15000) -> str:
             chrome_bin,
             '--headless=new',
             '--disable-gpu',
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
             f'--virtual-time-budget={budget_ms}',
             '--dump-dom',
             url,
