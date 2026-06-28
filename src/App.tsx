@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Trophy,
   Calendar,
@@ -8,22 +8,12 @@ import {
   ChevronRight,
   Info,
   MapPin,
-  RefreshCw,
-  TrendingUp,
-  Volume2,
-  VolumeX,
-  Play,
-  Pause,
-  PlusCircle,
   Moon,
   Sun,
 } from 'lucide-react';
 import {
-  advanceLiveMatch,
-  createOrderedEvents,
   filterMatches,
-  injectManualGoal,
-  makeMatchLive,
+  sortMatchesForDisplay,
   syncMatchStatuses,
 } from './lib/match-engine';
 import { buildKnockoutBracket } from './lib/bracket';
@@ -40,22 +30,6 @@ import {
 } from './lib/standings';
 import './App.css';
 
-interface MatchEvent {
-  type: 'goal' | 'card-yellow' | 'card-red' | 'sub';
-  time: number;
-  team: 'home' | 'away';
-  player: string;
-  detail?: string;
-}
-
-interface MatchStats {
-  possession: [number, number];
-  shots: [number, number];
-  shotsOnTarget: [number, number];
-  corners: [number, number];
-  fouls: [number, number];
-}
-
 interface FootballMatch {
   id: string;
   group: string;
@@ -71,8 +45,6 @@ interface FootballMatch {
   homeScore: number;
   awayScore: number;
   minute: number;
-  events: MatchEvent[];
-  stats: MatchStats;
 }
 
 
@@ -92,8 +64,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 2,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm2',
@@ -110,8 +80,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 2,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm3',
@@ -128,8 +96,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm4',
@@ -146,8 +112,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 4,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm5',
@@ -164,8 +128,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm6',
@@ -182,8 +144,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm7',
@@ -200,8 +160,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm8',
@@ -218,8 +176,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 2,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm9',
@@ -236,8 +192,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 7,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm10',
@@ -254,8 +208,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 2,
     awayScore: 2,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm11',
@@ -272,8 +224,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm12',
@@ -290,8 +240,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 5,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm13',
@@ -308,8 +256,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm14',
@@ -326,8 +272,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm15',
@@ -344,8 +288,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm16',
@@ -362,8 +304,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 2,
     awayScore: 2,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm17',
@@ -380,8 +320,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 3,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm18',
@@ -398,8 +336,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 4,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm19',
@@ -416,8 +352,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 3,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm20',
@@ -434,8 +368,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 3,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm21',
@@ -452,8 +384,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm22',
@@ -470,8 +400,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 4,
     awayScore: 2,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm23',
@@ -488,8 +416,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm24',
@@ -506,8 +432,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 3,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm25',
@@ -524,8 +448,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm26',
@@ -542,8 +464,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 4,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm27',
@@ -560,8 +480,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 6,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm28',
@@ -578,8 +496,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm29',
@@ -596,8 +512,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 2,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm30',
@@ -614,8 +528,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm31',
@@ -632,8 +544,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 3,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm32',
@@ -650,8 +560,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm33',
@@ -668,8 +576,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 5,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm34',
@@ -686,8 +592,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 2,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm35',
@@ -704,8 +608,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm36',
@@ -722,8 +624,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 4,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm37',
@@ -740,8 +640,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 4,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm38',
@@ -758,8 +656,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm39',
@@ -776,8 +672,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 2,
     awayScore: 2,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm40',
@@ -794,8 +688,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 3,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm41',
@@ -812,8 +704,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 2,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm42',
@@ -830,8 +720,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 3,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm43',
@@ -848,8 +736,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 3,
     awayScore: 2,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm44',
@@ -866,8 +752,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 2,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm45',
@@ -884,8 +768,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 5,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm46',
@@ -902,8 +784,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm47',
@@ -920,8 +800,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm48',
@@ -938,8 +816,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm49',
@@ -956,8 +832,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 2,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm50',
@@ -974,8 +848,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 3,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm51',
@@ -992,8 +864,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 3,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm52',
@@ -1010,8 +880,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 4,
     awayScore: 2,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm53',
@@ -1028,8 +896,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 3,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm54',
@@ -1046,8 +912,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm55',
@@ -1064,8 +928,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 2,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm56',
@@ -1082,8 +944,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 2,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm57',
@@ -1100,8 +960,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm58',
@@ -1118,8 +976,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 3,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm59',
@@ -1136,8 +992,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 3,
     awayScore: 2,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm60',
@@ -1154,8 +1008,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm61',
@@ -1172,8 +1024,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 4,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm62',
@@ -1190,8 +1040,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 5,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm63',
@@ -1208,8 +1056,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 0,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm64',
@@ -1226,8 +1072,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm65',
@@ -1244,8 +1088,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 1,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm66',
@@ -1262,8 +1104,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 1,
     awayScore: 5,
     minute: 90,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm67',
@@ -1280,8 +1120,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 0,
     minute: 0,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm68',
@@ -1298,8 +1136,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 0,
     minute: 0,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm69',
@@ -1316,8 +1152,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 0,
     minute: 0,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm70',
@@ -1334,8 +1168,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 0,
     minute: 0,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm71',
@@ -1352,8 +1184,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 0,
     minute: 0,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm72',
@@ -1370,8 +1200,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 0,
     minute: 0,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm73',
@@ -1388,8 +1216,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 0,
     minute: 0,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm74',
@@ -1406,8 +1232,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 0,
     minute: 0,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   },
   {
     id: 'm75',
@@ -1424,18 +1248,46 @@ const INITIAL_MATCHES: FootballMatch[] = [
     homeScore: 0,
     awayScore: 0,
     minute: 0,
-    events: [],
-    stats: { possession: [50, 50], shots: [0, 0], shotsOnTarget: [0, 0], corners: [0, 0], fouls: [0, 0] }
   }
 ];
 
-const DEFAULT_MATCH_STATS: MatchStats = {
-  possession: [50, 50],
-  shots: [0, 0],
-  shotsOnTarget: [0, 0],
-  corners: [0, 0],
-  fouls: [0, 0],
-};
+const LIVE_SCORE_SNAPSHOT = [
+  {
+    group: 'Group J',
+    homeTeam: 'Algeria',
+    awayTeam: 'Austria',
+    homeScore: 0,
+    awayScore: 1,
+  },
+  {
+    group: 'Group J',
+    homeTeam: 'Jordan',
+    awayTeam: 'Argentina',
+    homeScore: 0,
+    awayScore: 2,
+  },
+] as const;
+
+const applyLiveScoreSnapshot = (matches: FootballMatch[]): FootballMatch[] =>
+  matches.map((match) => {
+    const snapshot = LIVE_SCORE_SNAPSHOT.find(
+      (score) =>
+        score.group === match.group &&
+        score.homeTeam === match.homeTeam &&
+        score.awayTeam === match.awayTeam,
+    );
+
+    if (!snapshot) {
+      return match;
+    }
+
+    return {
+      ...match,
+      status: 'live',
+      homeScore: snapshot.homeScore,
+      awayScore: snapshot.awayScore,
+    };
+  });
 
 const OFFICIAL_INITIAL_MATCHES: FootballMatch[] = buildOfficialMatchSeeds(
   INITIAL_MATCHES.map((match) => ({
@@ -1455,11 +1307,7 @@ const OFFICIAL_INITIAL_MATCHES: FootballMatch[] = buildOfficialMatchSeeds(
     minute: match.minute,
   })),
   OFFICIAL_FIFA_FIXTURES,
-).map((match) => ({
-  ...match,
-  events: [],
-  stats: { ...DEFAULT_MATCH_STATS },
-}));
+);
 
 const INITIAL_STANDINGS: Record<string, Standing[]> = buildStandingsFromMatches(OFFICIAL_INITIAL_MATCHES);
 
@@ -1490,12 +1338,12 @@ const OFFICIAL_STANDINGS: Record<string, Standing[]> = Object.fromEntries(
 
 const createInitialMatches = (now = new Date()): FootballMatch[] =>
   syncMatchStatuses(
-    OFFICIAL_INITIAL_MATCHES.map((match) => ({
-      ...match,
-      events: [...match.events],
-      stats: { ...DEFAULT_MATCH_STATS },
-      ...normalizeVenue(match.stadium, match.city),
-    })),
+    applyLiveScoreSnapshot(
+      OFFICIAL_INITIAL_MATCHES.map((match) => ({
+        ...match,
+        ...normalizeVenue(match.stadium, match.city),
+      })),
+    ),
     now,
   );
 
@@ -1513,9 +1361,6 @@ export default function App() {
   const [activeView, setActiveView] = useState<'matches' | 'standings' | 'knockout'>('matches');
   const [theme, setTheme] = useState<ThemeMode>('dark');
   const [searchQuery, setSearchQuery] = useState('');
-  const [simIsRunning, setSimIsRunning] = useState(true);
-  const [audioEnabled, setAudioEnabled] = useState(true);
-  const [toast, setToast] = useState<string | null>(null);
   const themeTokens = useMemo(() => getThemeTokens(theme), [theme]);
   const standingsSnapshot = useMemo(() => buildStandingsSnapshot(standings), [standings]);
   const knockoutBracket = useMemo(() => buildKnockoutBracket(standingsSnapshot), [standingsSnapshot]);
@@ -1524,55 +1369,6 @@ export default function App() {
     () => matches.find((match) => match.id === selectedMatchId) ?? null,
     [matches, selectedMatchId],
   );
-
-  // Audio system for goal alerts
-  const playAlert = useCallback((type: 'goal' | 'whistle' | 'card') => {
-    if (!audioEnabled) return;
-    try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      if (type === 'goal') {
-        // High upbeat triplet
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-        gain.gain.setValueAtTime(0.2, ctx.currentTime);
-        osc.start();
-        osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
-        osc.frequency.setValueAtTime(880.00, ctx.currentTime + 0.2); // A5
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
-        osc.stop(ctx.currentTime + 0.6);
-      } else if (type === 'whistle') {
-        // Double referee whistle
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(1200, ctx.currentTime);
-        gain.gain.setValueAtTime(0.15, ctx.currentTime);
-        osc.start();
-        gain.gain.setValueAtTime(0, ctx.currentTime + 0.08);
-        gain.gain.setValueAtTime(0.15, ctx.currentTime + 0.12);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-        osc.stop(ctx.currentTime + 0.3);
-      } else {
-        // Red / Yellow card buzzer
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(150, ctx.currentTime);
-        gain.gain.setValueAtTime(0.1, ctx.currentTime);
-        osc.start();
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-        osc.stop(ctx.currentTime + 0.4);
-      }
-    } catch (e) {
-      console.warn('Audio play failed', e);
-    }
-  }, [audioEnabled]);
-
-  // Toast notifier helper
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 4000);
-  }, []);
 
   // Keep live statuses and minutes aligned to the real SGT clock
   useEffect(() => {
@@ -1586,87 +1382,18 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Real-time ticking simulation for live matches
-  useEffect(() => {
-    if (!simIsRunning) return;
-
-    const interval = setInterval(() => {
-      const pendingNotifications: Array<{ type: 'goal' | 'whistle' | 'card'; message: string }> = [];
-
-      setMatches((prevMatches) =>
-        prevMatches.map((match) => {
-          if (match.status !== 'live') return match;
-
-          const result = advanceLiveMatch(match);
-          pendingNotifications.push(...result.notifications);
-          return result.match;
-        }),
-      );
-
-      pendingNotifications.forEach((notification) => {
-        playAlert(notification.type);
-        showToast(notification.message);
-      });
-    }, 12000); // Ticks every 12 seconds (~1 simulated minute = 12 real seconds)
-
-    return () => clearInterval(interval);
-  }, [simIsRunning, playAlert, showToast]);
-
-  // Handle manually simulating a Goal for selected match
-  const simulateGoal = (scoringTeam: 'home' | 'away') => {
-    if (!selectedMatch) return;
-    const isLive = selectedMatch.status === 'live';
-    const goalMin = isLive ? selectedMatch.minute : Math.floor(Math.random() * 88) + 1;
-
-    setMatches((prevMatches) =>
-      prevMatches.map((match) => {
-        if (match.id !== selectedMatch.id) return match;
-        return injectManualGoal(match, scoringTeam, goalMin);
-      }),
-    );
-
-    playAlert('goal');
-    showToast(`⚽ MANUAL GOAL! ${scoringTeam === 'home' ? selectedMatch.homeTeam : selectedMatch.awayTeam} scores at ${goalMin}'!`);
-  };
-
-  // Convert an upcoming match to LIVE manually
-  const startMatchLive = (matchId: string) => {
-    setMatches((prevMatches) =>
-      prevMatches.map((match) => (match.id === matchId ? makeMatchLive(match) : match)),
-    );
-
-    const kickoffMatch = matches.find((match) => match.id === matchId);
-    if (kickoffMatch) {
-      playAlert('whistle');
-      showToast(`⚔️ KICK OFF! ${kickoffMatch.homeTeam} vs ${kickoffMatch.awayTeam} is now LIVE!`);
-    }
-  };
-
-  // Reset all simulation scores
-  const resetSimulation = () => {
-    const initialMatches = createInitialMatches();
-    setMatches(initialMatches);
-    setSelectedMatchId(getDefaultSelectedMatchId(initialMatches));
-    showToast('🔄 Simulation reset to the current SGT schedule state.');
-    playAlert('whistle');
-  };
-
   // Filter matches based on search and active status tab
   const filteredMatches = useMemo(
     () => filterMatches(matches, searchQuery, activeTab),
     [matches, searchQuery, activeTab],
   );
+  const displayMatches = useMemo(
+    () => sortMatchesForDisplay(filteredMatches, activeTab),
+    [filteredMatches, activeTab],
+  );
 
   return (
     <div data-theme={theme} className={`app-shell min-h-screen font-sans antialiased ${themeTokens.root}`}>
-      {/* Toast Alert Banner */}
-      {toast && (
-        <div className="fixed top-4 right-4 z-50 flex items-center gap-3 bg-indigo-600 text-white font-semibold py-3 px-5 rounded-2xl shadow-2xl border border-indigo-400 animate-bounce">
-          <Activity className="h-5 w-5 animate-pulse" />
-          <span>{toast}</span>
-        </div>
-      )}
-
       {/* Header */}
       <header className={`sticky top-0 z-40 backdrop-blur-md border-b ${themeTokens.surface}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -1697,47 +1424,6 @@ export default function App() {
             >
               {theme === 'dark' ? <Sun className="h-3.5 w-3.5 text-amber-400" /> : <Moon className="h-3.5 w-3.5 text-indigo-500" />}
               {theme === 'dark' ? 'Light UI' : 'Dark UI'}
-            </button>
-
-            <button
-              onClick={() => setAudioEnabled(!audioEnabled)}
-              className={`p-2 rounded-xl border transition ${
-                audioEnabled
-                  ? 'bg-slate-800 border-slate-700 text-indigo-400 hover:bg-slate-700'
-                  : 'bg-slate-950 border-slate-800 text-slate-500'
-              }`}
-              title={audioEnabled ? 'Mute Sounds' : 'Unmute Sounds'}
-            >
-              {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-            </button>
-
-            <button
-              onClick={() => setSimIsRunning(!simIsRunning)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition ${
-                simIsRunning
-                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
-                  : 'bg-amber-500/15 border-amber-500/30 text-amber-400 hover:bg-amber-500/20'
-              }`}
-            >
-              {simIsRunning ? (
-                <>
-                  <Pause className="h-3 w-3 fill-emerald-400" />
-                  Live Ticker On
-                </>
-              ) : (
-                <>
-                  <Play className="h-3 w-3 fill-amber-400" />
-                  Live Ticker Paused
-                </>
-              )}
-            </button>
-
-            <button
-              onClick={resetSimulation}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 text-xs font-bold hover:bg-slate-900 transition"
-            >
-              <RefreshCw className="h-3 w-3" />
-              Reset Stats
             </button>
           </div>
         </div>
@@ -1826,15 +1512,15 @@ export default function App() {
 
               {/* Match Feed */}
               <div className="space-y-4">
-                {filteredMatches.length === 0 ? (
+                {displayMatches.length === 0 ? (
                   <div className="bg-slate-900/30 border border-slate-850 py-16 text-center rounded-2xl">
                     <Info className="h-10 w-10 text-slate-600 mx-auto mb-3" />
                     <p className="text-slate-400 font-bold">No matches match your criteria.</p>
-                    <p className="text-slate-500 text-xs mt-1">Try resetting stats or broadening your search queries.</p>
+                    <p className="text-slate-500 text-xs mt-1">Try broadening your search query or switching tabs.</p>
                   </div>
                 ) : (
                   // Group matches by Date SGT for an beautifully structured feed
-                  Array.from(new Set(filteredMatches.map((m) => m.dateSgt))).map((date) => (
+                  Array.from(new Set(displayMatches.map((m) => m.dateSgt))).map((date) => (
                     <div key={date} className="space-y-3">
                       <div className="flex items-center gap-2 px-1">
                         <Calendar className="h-4 w-4 text-indigo-400" />
@@ -1845,7 +1531,7 @@ export default function App() {
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {filteredMatches
+                        {displayMatches
                           .filter((m) => m.dateSgt === date)
                           .map((match) => {
                             const isSelected = selectedMatch?.id === match.id;
@@ -1929,23 +1615,10 @@ export default function App() {
                                     {match.city}
                                   </span>
 
-                                  {match.status === 'upcoming' ? (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        startMatchLive(match.id);
-                                      }}
-                                      className="flex items-center gap-1 text-indigo-400 font-extrabold hover:text-indigo-300 transition"
-                                    >
-                                      Kick Off
-                                      <ChevronRight className="h-3 w-3" />
-                                    </button>
-                                  ) : (
-                                    <span className="text-indigo-500 font-bold uppercase tracking-wider group-hover:text-indigo-400 flex items-center gap-0.5">
-                                      Inspect Stats
-                                      <ChevronRight className="h-3 w-3" />
-                                    </span>
-                                  )}
+                                  <span className="text-indigo-500 font-bold uppercase tracking-wider group-hover:text-indigo-400 flex items-center gap-0.5">
+                                    Match Details
+                                    <ChevronRight className="h-3 w-3" />
+                                  </span>
                                 </div>
                               </div>
                             );
@@ -2022,195 +1695,35 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Interactive Action Control Room */}
-                  <div className="p-4 bg-slate-950/40 border-b border-slate-800">
-                    <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1">
-                      <Activity className="h-3 w-3 text-indigo-400" />
-                      Live Action Command Room (Simulate)
-                    </h4>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => simulateGoal('home')}
-                        className="flex items-center justify-center gap-1 bg-slate-900 hover:bg-slate-850 text-slate-300 font-bold py-2 px-3 rounded-xl border border-slate-800 text-xs transition"
-                      >
-                        <PlusCircle className="h-3.5 w-3.5 text-emerald-400" />
-                        + Home Goal
-                      </button>
-                      <button
-                        onClick={() => simulateGoal('away')}
-                        className="flex items-center justify-center gap-1 bg-slate-900 hover:bg-slate-850 text-slate-300 font-bold py-2 px-3 rounded-xl border border-slate-800 text-xs transition"
-                      >
-                        <PlusCircle className="h-3.5 w-3.5 text-emerald-400" />
-                        + Away Goal
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Stats Tabs */}
-                  <div className="p-5 space-y-6">
-                    {/* Event Timeline */}
+                  <div className="p-5 space-y-4">
                     <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-1.5">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
                         <Activity className="h-4 w-4 text-indigo-400" />
-                        Timeline Events
+                        Official Feed Details
                       </h4>
-
-                      {selectedMatch.events.length === 0 ? (
-                        <p className="text-slate-500 text-xs italic py-4 text-center">
-                          Awaiting game events. No events recorded yet.
-                        </p>
-                      ) : (
-                        <div className="space-y-3.5 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
-                          {createOrderedEvents(selectedMatch.events)
-                            .map((ev, index) => (
-                              <div key={index} className="flex gap-4 items-start text-xs pl-2.5 relative">
-                                <div className="absolute left-1.5 top-1.5 w-3 h-3 rounded-full bg-slate-800 border-2 border-slate-900 flex items-center justify-center z-10">
-                                  {ev.type === 'goal' && <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full" />}
-                                </div>
-
-                                <div className="text-indigo-400 font-black w-8 shrink-0">{ev.time}'</div>
-
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="font-extrabold text-slate-200">{ev.player}</span>
-                                    <span>
-                                      {ev.type === 'goal' ? '⚽' : ev.type === 'card-yellow' ? '🟨' : '🟥'}
-                                    </span>
-                                  </div>
-                                  {ev.detail && <p className="text-[11px] text-slate-400 font-medium">{ev.detail}</p>}
-                                  <span className="text-[10px] uppercase font-bold text-slate-500 block">
-                                    {ev.team === 'home' ? selectedMatch.homeTeam : selectedMatch.awayTeam}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                          <div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Status</div>
+                          <div className="mt-1 font-extrabold text-slate-200 capitalize">{selectedMatch.status}</div>
                         </div>
-                      )}
-                    </div>
-
-                    {/* Stats */}
-                    {selectedMatch.status !== 'upcoming' && (
-                      <div className="pt-4 border-t border-slate-800/60">
-                        <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-1.5">
-                          <TrendingUp className="h-4 w-4 text-rose-500" />
-                          Match Stats
-                        </h4>
-
-                        <div className="space-y-4">
-                          {/* Possession */}
-                          <div>
-                            <div className="flex justify-between text-xs font-bold mb-1.5">
-                              <span>{selectedMatch.stats.possession[0]}%</span>
-                              <span className="text-slate-500 font-black">Possession</span>
-                              <span>{selectedMatch.stats.possession[1]}%</span>
-                            </div>
-                            <div className="h-2 bg-slate-800 rounded-full overflow-hidden flex">
-                              <div className="bg-indigo-500" style={{ width: `${selectedMatch.stats.possession[0]}%` }} />
-                              <div className="bg-rose-500" style={{ width: `${selectedMatch.stats.possession[1]}%` }} />
-                            </div>
-                          </div>
-
-                          {/* Shots */}
-                          <div>
-                            <div className="flex justify-between text-xs font-bold mb-1.5">
-                              <span>{selectedMatch.stats.shots[0]}</span>
-                              <span className="text-slate-500 font-black">Total Shots</span>
-                              <span>{selectedMatch.stats.shots[1]}</span>
-                            </div>
-                            <div className="h-2 bg-slate-800 rounded-full overflow-hidden flex">
-                              <div
-                                className="bg-indigo-500"
-                                style={{
-                                  width: `${
-                                    selectedMatch.stats.shots[0] + selectedMatch.stats.shots[1] > 0
-                                      ? (selectedMatch.stats.shots[0] / (selectedMatch.stats.shots[0] + selectedMatch.stats.shots[1])) * 100
-                                      : 50
-                                  }%`
-                                }}
-                              />
-                              <div
-                                className="bg-rose-500"
-                                style={{
-                                  width: `${
-                                    selectedMatch.stats.shots[0] + selectedMatch.stats.shots[1] > 0
-                                      ? (selectedMatch.stats.shots[1] / (selectedMatch.stats.shots[0] + selectedMatch.stats.shots[1])) * 100
-                                      : 50
-                                  }%`
-                                }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Shots on Target */}
-                          <div>
-                            <div className="flex justify-between text-xs font-bold mb-1.5">
-                              <span>{selectedMatch.stats.shotsOnTarget[0]}</span>
-                              <span className="text-slate-500 font-black">On Target</span>
-                              <span>{selectedMatch.stats.shotsOnTarget[1]}</span>
-                            </div>
-                            <div className="h-2 bg-slate-800 rounded-full overflow-hidden flex">
-                              <div
-                                className="bg-indigo-500"
-                                style={{
-                                  width: `${
-                                    selectedMatch.stats.shotsOnTarget[0] + selectedMatch.stats.shotsOnTarget[1] > 0
-                                      ? (selectedMatch.stats.shotsOnTarget[0] / (selectedMatch.stats.shotsOnTarget[0] + selectedMatch.stats.shotsOnTarget[1])) * 100
-                                      : 50
-                                  }%`
-                                }}
-                              />
-                              <div
-                                className="bg-rose-500"
-                                style={{
-                                  width: `${
-                                    selectedMatch.stats.shotsOnTarget[0] + selectedMatch.stats.shotsOnTarget[1] > 0
-                                      ? (selectedMatch.stats.shotsOnTarget[1] / (selectedMatch.stats.shotsOnTarget[0] + selectedMatch.stats.shotsOnTarget[1])) * 100
-                                      : 50
-                                  }%`
-                                }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Corners */}
-                          <div>
-                            <div className="flex justify-between text-xs font-bold mb-1.5">
-                              <span>{selectedMatch.stats.corners[0]}</span>
-                              <span className="text-slate-500 font-black">Corners</span>
-                              <span>{selectedMatch.stats.corners[1]}</span>
-                            </div>
-                            <div className="h-2 bg-slate-800 rounded-full overflow-hidden flex">
-                              <div
-                                className="bg-indigo-500"
-                                style={{
-                                  width: `${
-                                    selectedMatch.stats.corners[0] + selectedMatch.stats.corners[1] > 0
-                                      ? (selectedMatch.stats.corners[0] / (selectedMatch.stats.corners[0] + selectedMatch.stats.corners[1])) * 100
-                                      : 50
-                                  }%`
-                                }}
-                              />
-                              <div
-                                className="bg-rose-500"
-                                style={{
-                                  width: `${
-                                    selectedMatch.stats.corners[0] + selectedMatch.stats.corners[1] > 0
-                                      ? (selectedMatch.stats.corners[1] / (selectedMatch.stats.corners[0] + selectedMatch.stats.corners[1])) * 100
-                                      : 50
-                                  }%`
-                                }}
-                              />
-                            </div>
+                        <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                          <div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Kickoff</div>
+                          <div className="mt-1 font-extrabold text-slate-200">
+                            {selectedMatch.dateSgt} · {selectedMatch.timeSgt}
                           </div>
                         </div>
                       </div>
-                    )}
+                    </div>
+
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-xs text-slate-400">
+                      Verified event timelines and match-stat feeds are not available in the local data source, so this panel only shows official schedule and score fields.
+                    </div>
                   </div>
                 </div>
               ) : (
                 <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl text-center text-slate-500">
                   <Info className="h-8 w-8 text-slate-600 mx-auto mb-2" />
-                  Select a match to view stats, rosters, and live timeline actions.
+                  Select a match to view official schedule and score details.
                 </div>
               )}
             </div>
