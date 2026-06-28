@@ -12,7 +12,7 @@ const baseMatch: FootballMatch = {
   homeTeam: 'Panama',
   homeFlag: '🇵🇦',
   awayTeam: 'England',
-  awayFlag: '🏴',
+  awayFlag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
   dateSgt: 'Sun, Jun 28',
   timeSgt: '05:00 AM',
   stadium: 'MetLife Stadium',
