@@ -19,7 +19,7 @@ describe('buildKnockoutBracket', () => {
     const groups: Record<string, Standing[]> = {
       'Group A': [createStanding('Mexico', 9, 6, '🇲🇽'), createStanding('South Africa', 4, -1, '🇿🇦'), createStanding('Korea Republic', 3, -1, '🇰🇷'), createStanding('Czechia', 1, -4, '🇨🇿')],
       'Group B': [createStanding('Switzerland', 7, 4, '🇨🇭'), createStanding('Canada', 4, 5, '🇨🇦'), createStanding('Bosnia and Herzegovina', 4, -1, '🇧🇦'), createStanding('Qatar', 1, -8, '🇶🇦')],
-      'Group C': [createStanding('Brazil', 7, 6, '🇧🇷'), createStanding('Morocco', 7, 3, '🇲🇦'), createStanding('Scotland', 3, -3, '🏴'), createStanding('Haiti', 0, -6, '🇭🇹')],
+      'Group C': [createStanding('Brazil', 7, 6, '🇧🇷'), createStanding('Morocco', 7, 3, '🇲🇦'), createStanding('Scotland', 3, -3, '🏴󠁧󠁢󠁳󠁣󠁴󠁿'), createStanding('Haiti', 0, -6, '🇭🇹')],
       'Group D': [createStanding('USA', 6, 4, '🇺🇸'), createStanding('Australia', 4, 0, '🇦🇺'), createStanding('Paraguay', 4, -2, '🇵🇾'), createStanding('Türkiye', 3, -2, '🇹🇷')],
       'Group E': [createStanding('Germany', 6, 6, '🇩🇪'), createStanding("Côte d'Ivoire", 6, 2, '🇨🇮'), createStanding('Ecuador', 4, 0, '🇪🇨'), createStanding('Curaçao', 1, -8, '🇨🇼')],
       'Group F': [createStanding('Netherlands', 7, 6, '🇳🇱'), createStanding('Japan', 5, 4, '🇯🇵'), createStanding('Sweden', 4, 0, '🇸🇪'), createStanding('Tunisia', 0, -10, '🇹🇳')],
@@ -28,7 +28,7 @@ describe('buildKnockoutBracket', () => {
       'Group I': [createStanding('France', 9, 8, '🇫🇷'), createStanding('Norway', 6, 1, '🇳🇴'), createStanding('Senegal', 3, 2, '🇸🇳'), createStanding('Iraq', 0, -11, '🇮🇶')],
       'Group J': [createStanding('Argentina', 6, 5, '🇦🇷'), createStanding('Austria', 3, 0, '🇦🇹'), createStanding('Algeria', 3, -2, '🇩🇿'), createStanding('Jordan', 0, -3, '🇯🇴')],
       'Group K': [createStanding('Colombia', 6, 3, '🇨🇴'), createStanding('Portugal', 4, 5, '🇵🇹'), createStanding('Congo DR', 1, -1, '🇨🇩'), createStanding('Uzbekistan', 0, -7, '🇺🇿')],
-      'Group L': [createStanding('England', 4, 2, '🏴'), createStanding('Ghana', 4, 1, '🇬🇭'), createStanding('Croatia', 3, -1, '🇭🇷'), createStanding('Panama', 0, -2, '🇵🇦')],
+      'Group L': [createStanding('England', 4, 2, '🏴󠁧󠁢󠁥󠁮󠁧󠁿'), createStanding('Ghana', 4, 1, '🇬🇭'), createStanding('Croatia', 3, -1, '🇭🇷'), createStanding('Panama', 0, -2, '🇵🇦')],
     };
 
     const snapshot = buildStandingsSnapshot(groups);
