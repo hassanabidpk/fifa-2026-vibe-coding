@@ -89,11 +89,14 @@ export const filterMatches = (matches: FootballMatch[], query: string, activeTab
 };
 
 export const sortMatchesForDisplay = (matches: FootballMatch[], activeTab: MatchTab) => {
-  if (activeTab !== 'finished') {
-    return [...matches];
+  if (activeTab === 'finished') {
+    return [...matches].sort((a, b) => toDisplayTimestamp(b) - toDisplayTimestamp(a));
+  }
+  if (activeTab === 'upcoming') {
+    return [...matches].sort((a, b) => toDisplayTimestamp(a) - toDisplayTimestamp(b));
   }
 
-  return [...matches].sort((a, b) => toDisplayTimestamp(b) - toDisplayTimestamp(a));
+  return [...matches];
 };
 
 export const syncMatchStatuses = (matches: FootballMatch[], now: Date): FootballMatch[] => {

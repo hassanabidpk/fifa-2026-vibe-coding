@@ -48,6 +48,17 @@ describe('match-engine', () => {
     expect(sortMatchesForDisplay(matches, 'all').map((match) => match.id)).toEqual(['undated', 'old', 'late', 'early']);
   });
 
+  it('sorts upcoming matches chronologically ascending for display', () => {
+    const matches: FootballMatch[] = [
+      { ...baseMatch, id: 'undated', dateSgt: '', timeSgt: '', status: 'upcoming' },
+      { ...baseMatch, id: 'old', dateSgt: 'Sat, Jun 27', timeSgt: '11:00 AM', status: 'upcoming' },
+      { ...baseMatch, id: 'late', dateSgt: 'Sun, Jun 28', timeSgt: '10:00 AM', status: 'upcoming' },
+      { ...baseMatch, id: 'early', dateSgt: 'Sun, Jun 28', timeSgt: '07:30 AM', status: 'upcoming' },
+    ];
+
+    expect(sortMatchesForDisplay(matches, 'upcoming').map((match) => match.id)).toEqual(['undated', 'old', 'early', 'late']);
+  });
+
   it('syncs match statuses to the current SGT kickoff window without changing score data', () => {
     const matches: FootballMatch[] = [
       {

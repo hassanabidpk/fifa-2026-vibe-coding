@@ -1251,22 +1251,13 @@ const INITIAL_MATCHES: FootballMatch[] = [
   }
 ];
 
-const LIVE_SCORE_SNAPSHOT = [
-  {
-    group: 'Group J',
-    homeTeam: 'Algeria',
-    awayTeam: 'Austria',
-    homeScore: 0,
-    awayScore: 1,
-  },
-  {
-    group: 'Group J',
-    homeTeam: 'Jordan',
-    awayTeam: 'Argentina',
-    homeScore: 0,
-    awayScore: 2,
-  },
-] as const;
+const LIVE_SCORE_SNAPSHOT: readonly {
+  group: string;
+  homeTeam: string;
+  awayTeam: string;
+  homeScore: number;
+  awayScore: number;
+}[] = [];
 
 const applyLiveScoreSnapshot = (matches: FootballMatch[]): FootballMatch[] =>
   matches.map((match) => {
