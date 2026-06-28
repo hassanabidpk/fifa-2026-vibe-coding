@@ -948,9 +948,9 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "",
     "stadium": "New York New Jersey Stadium",
     "city": "",
-    "status": "upcoming",
+    "status": "finished",
     "homeScore": 0,
-    "awayScore": 0
+    "awayScore": 2
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289273/400021509",
@@ -962,9 +962,9 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "",
     "stadium": "Philadelphia Stadium",
     "city": "",
-    "status": "upcoming",
-    "homeScore": 0,
-    "awayScore": 0
+    "status": "finished",
+    "homeScore": 2,
+    "awayScore": 1
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289273/400021497",
@@ -1004,7 +1004,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "",
     "stadium": "Miami Stadium",
     "city": "",
-    "status": "upcoming",
+    "status": "finished",
     "homeScore": 0,
     "awayScore": 0
   },
@@ -1018,9 +1018,9 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "",
     "stadium": "Atlanta Stadium",
     "city": "",
-    "status": "upcoming",
-    "homeScore": 0,
-    "awayScore": 0
+    "status": "finished",
+    "homeScore": 3,
+    "awayScore": 1
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289287/400021518",
@@ -1111,7 +1111,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 79,
     "group": "Round of 32",
     "homeTeam": "Mexico",
-    "awayTeam": "Group C/E/F/H/I third place",
+    "awayTeam": "Ecuador",
     "dateSgt": "Wed, Jul 1",
     "timeSgt": "09:00 AM",
     "stadium": "Mexico City Stadium",
@@ -1124,8 +1124,8 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289287/400021512",
     "matchNumber": 80,
     "group": "Round of 32",
-    "homeTeam": "Group L winners",
-    "awayTeam": "Group E/H/I/J/K third place",
+    "homeTeam": "England",
+    "awayTeam": "Congo DR",
     "dateSgt": "Thu, Jul 2",
     "timeSgt": "12:00 AM",
     "stadium": "Atlanta Stadium",
@@ -1153,7 +1153,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 82,
     "group": "Round of 32",
     "homeTeam": "Belgium",
-    "awayTeam": "Group A/E/H/I/J third place",
+    "awayTeam": "Senegal",
     "dateSgt": "Thu, Jul 2",
     "timeSgt": "04:00 AM",
     "stadium": "Seattle Stadium",
@@ -1166,8 +1166,8 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289287/400021526",
     "matchNumber": 83,
     "group": "Round of 32",
-    "homeTeam": "Group K runners-up",
-    "awayTeam": "Group L runners-up",
+    "homeTeam": "Portugal",
+    "awayTeam": "Croatia",
     "dateSgt": "Fri, Jul 3",
     "timeSgt": "07:00 AM",
     "stadium": "Toronto Stadium",
@@ -1222,8 +1222,8 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289287/400021517",
     "matchNumber": 87,
     "group": "Round of 32",
-    "homeTeam": "Group K winners",
-    "awayTeam": "Group D/E/I/J/L third place",
+    "homeTeam": "Colombia",
+    "awayTeam": "Ghana",
     "dateSgt": "Sat, Jul 4",
     "timeSgt": "09:30 AM",
     "stadium": "Kansas City Stadium",
