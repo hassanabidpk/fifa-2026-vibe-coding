@@ -1264,7 +1264,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021530",
     "matchNumber": 90,
     "group": "Round of 16",
-    "homeTeam": "Winner match 73",
+    "homeTeam": "Canada",
     "awayTeam": "Winner match 75",
     "dateSgt": "Sun, Jul 5",
     "timeSgt": "01:00 AM",
