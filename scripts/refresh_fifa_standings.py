@@ -8,6 +8,7 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 from urllib.request import Request, urlopen
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -16,6 +17,7 @@ FIXTURES_OUTPUT_PATH = REPO_ROOT / 'src' / 'data' / 'fifa-fixtures.ts'
 STANDINGS_URL = 'https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/standings'
 FIXTURES_SECTION_URL = 'https://cxm-api.fifa.com/fifaplusweb/api/sections/article/S9YG2JmeGYaMUCBbm0CcD?locale=en'
 STANDINGS_START_MARKER = 'Standings and Group Tables - Group A'
+GROUP_NAMES = [f'Group {chr(65 + index)}' for index in range(12)]
 END_MARKERS = ['Your Privacy', 'Cookies Settings', 'Privacy Preference Center']
 KNOCKOUT_STAGE_MAP = {
     'FIFA World Cup 2026 – Round of 32 fixtures': 'Round of 32',
@@ -24,6 +26,7 @@ KNOCKOUT_STAGE_MAP = {
     'FIFA World Cup 2026 semi-final fixtures': 'Semifinals',
     'FIFA World Cup 2026 bronze final': 'Third Place',
     'FIFA World Cup 2026 Final': 'Final',
+    'FIFA World Cup 26 Final': 'Final',
 }
 DEFAULT_CHROME_CANDIDATES = [
     os.environ.get('CHROME_BIN', ''),
@@ -104,6 +107,46 @@ def extract_standings_segment(dom: str) -> str:
     return segment.strip()
 
 
+def parse_existing_standings_lookup() -> dict[str, dict[str, int | str]]:
+    if not STANDINGS_OUTPUT_PATH.exists():
+        return {}
+
+    text = STANDINGS_OUTPUT_PATH.read_text()
+    match = re.search(r'OFFICIAL_FIFA_STANDINGS_TEXT = (.+);\s*$', text, flags=re.S)
+    if not match:
+        return {}
+
+    standings_text = json.loads(match.group(1))
+    lookup: dict[str, dict[str, int | str]] = {}
+    row_pattern = re.compile(
+        r'(\d{1,2})\s+(.+?)\s+([A-Z]{3})\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s+(\d+)'
+    )
+
+    for group_name in GROUP_NAMES:
+        marker = f'Standings and Group Tables - {group_name}'
+        start = standings_text.find(marker)
+        if start == -1:
+            continue
+
+        end = len(standings_text)
+        for next_group in GROUP_NAMES[GROUP_NAMES.index(group_name) + 1 :]:
+            pos = standings_text.find(f'Standings and Group Tables - {next_group}', start + len(marker))
+            if pos != -1:
+                end = pos
+                break
+
+        segment = standings_text[start:end]
+        for row_match in row_pattern.finditer(segment):
+            _, team, code, *_numbers, tcs, points = row_match.groups()
+            lookup[normalize_text(team)] = {
+                'code': code,
+                'teamConductScore': int(tcs),
+                'points': int(points),
+            }
+
+    return lookup
+
+
 def format_date_label(date_obj: datetime) -> str:
     return f"{date_obj.strftime('%a')}, {date_obj.strftime('%b')} {date_obj.day}"
 
@@ -176,7 +219,7 @@ def parse_fixture_line(tokens: list[tuple[str, str, str]], current_stage: str) -
         stadium = normalize_text(stage_match.group(2))
     else:
         group = current_stage
-        stadium = normalize_text(re.sub(r'^[-–]\s*', '', suffix))
+        stadium = normalize_text(re.sub(r'^[-–]\s*(?:(?:\d{1,2}:\d{2})\s*[-–]\s*)?', '', suffix))
 
     home_team, away_team, status, home_score, away_score = parse_match_label(label)
 
@@ -310,6 +353,103 @@ def render_fixtures_module(fixtures: list[dict]) -> str:
     )
 
 
+def compute_standings_from_fixtures(fixtures: list[dict]) -> str:
+    lookup = parse_existing_standings_lookup()
+    groups: dict[str, dict[str, dict[str, Any]]] = {group_name: {} for group_name in GROUP_NAMES}
+
+    for fixture in fixtures:
+        group_name = fixture['group']
+        if group_name not in groups:
+            continue
+
+        for team_key in ('homeTeam', 'awayTeam'):
+            team_name = fixture[team_key]
+            seed = lookup.get(team_name, {})
+            groups[group_name].setdefault(
+                team_name,
+                {
+                    'team': team_name,
+                    'code': seed.get('code', ''),
+                    'played': 0,
+                    'won': 0,
+                    'drawn': 0,
+                    'lost': 0,
+                    'goalsFor': 0,
+                    'goalsAgainst': 0,
+                    'goalDifference': 0,
+                    'teamConductScore': int(seed.get('teamConductScore', 0)),
+                    'points': 0,
+                },
+            )
+
+        if fixture['status'] != 'finished':
+            continue
+
+        home = groups[group_name][fixture['homeTeam']]
+        away = groups[group_name][fixture['awayTeam']]
+        home_score = int(fixture['homeScore'])
+        away_score = int(fixture['awayScore'])
+
+        home['played'] += 1
+        away['played'] += 1
+        home['goalsFor'] += home_score
+        home['goalsAgainst'] += away_score
+        away['goalsFor'] += away_score
+        away['goalsAgainst'] += home_score
+
+        if home_score > away_score:
+            home['won'] += 1
+            away['lost'] += 1
+            home['points'] += 3
+        elif home_score < away_score:
+            away['won'] += 1
+            home['lost'] += 1
+            away['points'] += 3
+        else:
+            home['drawn'] += 1
+            away['drawn'] += 1
+            home['points'] += 1
+            away['points'] += 1
+
+    for teams in groups.values():
+        for row in teams.values():
+            row['goalDifference'] = int(row['goalsFor']) - int(row['goalsAgainst'])
+
+    lines: list[str] = []
+    for group_name in GROUP_NAMES:
+        teams = list(groups[group_name].values())
+        teams.sort(
+            key=lambda row: (
+                -int(row['points']),
+                -int(row['goalDifference']),
+                -int(row['goalsFor']),
+                -int(row['teamConductScore']),
+                str(row['team']),
+            )
+        )
+
+        lines.extend([
+            'Standings and Group Tables -',
+            group_name,
+            group_name,
+            'P W D L GF GA GD TCS Pts Form',
+        ])
+
+        for index, row in enumerate(teams, start=1):
+            if not row['code']:
+                raise ScriptError(f"Missing FIFA code for {row['team']}")
+            lines.append(
+                f"{index} {row['team']} {row['code']} {row['played']} {row['won']} {row['drawn']} {row['lost']} "
+                f"{row['goalsFor']} {row['goalsAgainst']} {row['goalDifference']} {row['teamConductScore']} {row['points']} - -"
+            )
+
+    lines.extend([
+        '= Confirmed Qualified = Qualified next round = Live Qualified = Live Eliminated = Eliminated',
+        'P = Matches Played W = Wins D = Draws L = Loss GF = Goals For GA = Goals Against GD = Goal Difference TCS = Team Conduct Score Pts = Points = Wins = Draws = Loss - = Not played',
+    ])
+    return ' '.join(lines)
+
+
 def write_output(path: Path, content: str) -> bool:
     previous = path.read_text() if path.exists() else None
     path.write_text(content)
@@ -319,16 +459,14 @@ def write_output(path: Path, content: str) -> bool:
 def main() -> int:
     chrome_bin = resolve_chrome()
 
-    standings_dom = dump_dom(chrome_bin, STANDINGS_URL)
-    standings_segment = extract_standings_segment(standings_dom)
+    fixtures_payload = fetch_json(FIXTURES_SECTION_URL)
+    fixtures = parse_fixture_article(fixtures_payload)
+    hydrate_fixture_details(chrome_bin, fixtures)
+    standings_segment = compute_standings_from_fixtures(fixtures)
     standings_changed = write_output(
         STANDINGS_OUTPUT_PATH,
         f'export const OFFICIAL_FIFA_STANDINGS_TEXT = {standings_segment!r};\n',
     )
-
-    fixtures_payload = fetch_json(FIXTURES_SECTION_URL)
-    fixtures = parse_fixture_article(fixtures_payload)
-    hydrate_fixture_details(chrome_bin, fixtures)
     fixtures_changed = write_output(FIXTURES_OUTPUT_PATH, render_fixtures_module(fixtures))
 
     print(f'CHROME_BIN={chrome_bin}')

@@ -1032,9 +1032,9 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "03:00 AM",
     "stadium": "15:00 - Los Angeles Stadium",
     "city": "Los Angeles",
-    "status": "upcoming",
+    "status": "finished",
     "homeScore": 0,
-    "awayScore": 0
+    "awayScore": 1
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289287/400021513",
