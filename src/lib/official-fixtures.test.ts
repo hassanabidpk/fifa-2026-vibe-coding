@@ -58,6 +58,22 @@ describe('buildOfficialMatchSeeds', () => {
     ]);
   });
 
+  it('applies live official scores without dropping the in-progress match state', () => {
+    const results = buildOfficialMatchSeeds(
+      [legacyMatch({ homeScore: 0, awayScore: 0, status: 'live', minute: 45 })],
+      [officialFixture({ status: 'live', homeScore: 0, awayScore: 1 })],
+    );
+
+    expect(results).toEqual([
+      expect.objectContaining({
+        status: 'live',
+        homeScore: 0,
+        awayScore: 1,
+        minute: 0,
+      }),
+    ]);
+  });
+
   it('creates new seeded knockout matches from official fixtures when no legacy stub exists', () => {
     const results = buildOfficialMatchSeeds(
       [legacyMatch({ homeTeam: 'Canada', homeFlag: '🇨🇦', awayTeam: 'Bosnia and Herzegovina', awayFlag: '🇧🇦' })],

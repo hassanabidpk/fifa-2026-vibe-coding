@@ -8,7 +8,7 @@ export interface OfficialFixtureSeed {
   timeSgt: string;
   stadium: string;
   city: string;
-  status: 'upcoming' | 'finished';
+  status: 'upcoming' | 'live' | 'finished';
   homeScore: number;
   awayScore: number;
 }
@@ -1074,9 +1074,9 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "01:00 AM",
     "stadium": "Houston Stadium",
     "city": "Houston",
-    "status": "upcoming",
+    "status": "live",
     "homeScore": 0,
-    "awayScore": 0
+    "awayScore": 1
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289287/400021523",

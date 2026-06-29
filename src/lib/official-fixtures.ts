@@ -27,7 +27,7 @@ export interface OfficialFixtureSeed {
   timeSgt: string;
   stadium: string;
   city: string;
-  status: 'upcoming' | 'finished';
+  status: 'upcoming' | 'live' | 'finished';
   homeScore: number;
   awayScore: number;
 }

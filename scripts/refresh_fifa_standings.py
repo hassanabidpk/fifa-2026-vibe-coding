@@ -6,7 +6,7 @@ import os
 import re
 import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.request import Request, urlopen
@@ -36,6 +36,8 @@ DEFAULT_CHROME_CANDIDATES = [
     'chromium',
     'chromium-browser',
 ]
+SGT = timezone(timedelta(hours=8))
+LIVE_STATE_WINDOW = timedelta(hours=4)
 
 
 class ScriptError(RuntimeError):
@@ -297,6 +299,50 @@ def parse_match_page_details(dom: str) -> tuple[str, str, str, str]:
     return format_date_label(date_obj), format_time_label(time_value), normalize_text(stadium), normalize_text(city)
 
 
+def parse_match_page_state(dom: str) -> tuple[str, int, int]:
+    meta_match = re.search(r'<meta\s+name="description"\s+content="([^"]+)"', dom, flags=re.I)
+    if not meta_match:
+        return 'upcoming', 0, 0
+
+    description = html.unescape(meta_match.group(1))
+    state_match = re.search(r',\s*(\d+)-(\d+),\s*([^,]+),\s*[^,]+,\s*\d{4}-\d{2}-\d{2}T', description)
+    if not state_match:
+        return 'upcoming', 0, 0
+
+    home_score, away_score, raw_state = state_match.groups()
+    normalized_state = normalize_text(raw_state).lower()
+    status = 'live' if normalized_state == 'live' else 'finished'
+    return status, int(home_score), int(away_score)
+
+
+def parse_fixture_kickoff_sgt(fixture: dict) -> datetime | None:
+    date_label = normalize_text(fixture.get('dateSgt', ''))
+    time_label = normalize_text(fixture.get('timeSgt', ''))
+    if not date_label or not time_label:
+        return None
+
+    try:
+        current_year = datetime.now(SGT).year
+        kickoff = datetime.strptime(f"{date_label.split(', ', 1)[1]} {current_year} {time_label}", '%b %d %Y %I:%M %p')
+    except (IndexError, ValueError):
+        return None
+
+    return kickoff.replace(tzinfo=SGT)
+
+
+def should_refresh_match_state(fixture: dict, now: datetime | None = None) -> bool:
+    kickoff = parse_fixture_kickoff_sgt(fixture)
+    if kickoff is None:
+        return False
+
+    current_time = now or datetime.now(timezone.utc)
+    if current_time.tzinfo is None:
+        current_time = current_time.replace(tzinfo=timezone.utc)
+
+    delta = kickoff.astimezone(timezone.utc) - current_time.astimezone(timezone.utc)
+    return -LIVE_STATE_WINDOW <= delta <= LIVE_STATE_WINDOW
+
+
 def hydrate_fixture_details(chrome_bin: str, fixtures: list[dict]) -> None:
     existing = load_existing_fixtures()
     scraped = 0
@@ -328,6 +374,24 @@ def hydrate_fixture_details(chrome_bin: str, fixtures: list[dict]) -> None:
     print(f'FIXTURE_PAGES_SCRAPED={scraped}')
 
 
+def hydrate_match_states(chrome_bin: str, fixtures: list[dict], now: datetime | None = None) -> None:
+    refreshed = 0
+    current_time = now or datetime.now(timezone.utc)
+
+    for fixture in fixtures:
+        if not should_refresh_match_state(fixture, current_time):
+            continue
+
+        dom = dump_dom(chrome_bin, fixture['sourceUrl'], budget_ms=8000)
+        status, home_score, away_score = parse_match_page_state(dom)
+        fixture['status'] = status
+        fixture['homeScore'] = home_score
+        fixture['awayScore'] = away_score
+        refreshed += 1
+
+    print(f'LIVE_STATE_PAGES_SCRAPED={refreshed}')
+
+
 def render_fixtures_module(fixtures: list[dict]) -> str:
     payload = json.dumps(fixtures, ensure_ascii=False, indent=2)
     payload = payload.replace('`', '\\`')
@@ -342,7 +406,7 @@ def render_fixtures_module(fixtures: list[dict]) -> str:
         "  timeSgt: string;\n"
         "  stadium: string;\n"
         "  city: string;\n"
-        "  status: 'upcoming' | 'finished';\n"
+        "  status: 'upcoming' | 'live' | 'finished';\n"
         "  homeScore: number;\n"
         "  awayScore: number;\n"
         "}\n\n"
@@ -462,6 +526,7 @@ def main() -> int:
     fixtures_payload = fetch_json(FIXTURES_SECTION_URL)
     fixtures = parse_fixture_article(fixtures_payload)
     hydrate_fixture_details(chrome_bin, fixtures)
+    hydrate_match_states(chrome_bin, fixtures)
     standings_segment = compute_standings_from_fixtures(fixtures)
     standings_changed = write_output(
         STANDINGS_OUTPUT_PATH,

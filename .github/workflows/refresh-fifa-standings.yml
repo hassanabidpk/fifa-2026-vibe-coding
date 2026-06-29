@@ -36,7 +36,7 @@ jobs:
         run: python3 scripts/refresh_fifa_standings.py
 
       - name: Validate
-        run: npm test && npm run lint && npm run build
+        run: python3 -m unittest discover -s scripts -p '*_test.py' -v && npm test && npm run lint && npm run build
 
       - name: Commit and push if changed
         run: |
