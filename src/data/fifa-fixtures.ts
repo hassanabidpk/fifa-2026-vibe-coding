@@ -1074,7 +1074,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "01:00 AM",
     "stadium": "Houston Stadium",
     "city": "Houston",
-    "status": "live",
+    "status": "finished",
     "homeScore": 2,
     "awayScore": 1
   },
@@ -1278,7 +1278,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021532",
     "matchNumber": 91,
     "group": "Round of 16",
-    "homeTeam": "Winner match 76",
+    "homeTeam": "Brazil",
     "awayTeam": "Winner match 78",
     "dateSgt": "Mon, Jul 6",
     "timeSgt": "04:00 AM",
