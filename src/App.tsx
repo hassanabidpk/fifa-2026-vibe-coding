@@ -20,7 +20,7 @@ import { buildKnockoutBracket } from './lib/bracket';
 import { OFFICIAL_FIFA_FIXTURES } from './data/fifa-fixtures';
 import { OFFICIAL_FIFA_STANDINGS_TEXT } from './data/fifa-standings';
 import { parseFifaStandingsText } from './lib/fifa-standings';
-import { buildOfficialMatchSeeds } from './lib/official-fixtures';
+import { buildOfficialMatchSeeds, toTeamLookupKey } from './lib/official-fixtures';
 import { getThemeTokens, type ThemeMode } from './lib/theme';
 import {
   buildStandingsFromMatches,
@@ -1251,35 +1251,6 @@ const INITIAL_MATCHES: FootballMatch[] = [
   }
 ];
 
-const LIVE_SCORE_SNAPSHOT: readonly {
-  group: string;
-  homeTeam: string;
-  awayTeam: string;
-  homeScore: number;
-  awayScore: number;
-}[] = [];
-
-const applyLiveScoreSnapshot = (matches: FootballMatch[]): FootballMatch[] =>
-  matches.map((match) => {
-    const snapshot = LIVE_SCORE_SNAPSHOT.find(
-      (score) =>
-        score.group === match.group &&
-        score.homeTeam === match.homeTeam &&
-        score.awayTeam === match.awayTeam,
-    );
-
-    if (!snapshot) {
-      return match;
-    }
-
-    return {
-      ...match,
-      status: 'live',
-      homeScore: snapshot.homeScore,
-      awayScore: snapshot.awayScore,
-    };
-  });
-
 const OFFICIAL_INITIAL_MATCHES: FootballMatch[] = buildOfficialMatchSeeds(
   INITIAL_MATCHES.map((match) => ({
     id: match.id,
@@ -1305,8 +1276,8 @@ const INITIAL_STANDINGS: Record<string, Standing[]> = buildStandingsFromMatches(
 const OFFICIAL_FIFA_STANDINGS = parseFifaStandingsText(OFFICIAL_FIFA_STANDINGS_TEXT);
 const TEAM_FLAG_LOOKUP = Object.fromEntries(
   OFFICIAL_INITIAL_MATCHES.flatMap((match) => [
-    [match.homeTeam, match.homeFlag],
-    [match.awayTeam, match.awayFlag],
+    [toTeamLookupKey(match.homeTeam), match.homeFlag],
+    [toTeamLookupKey(match.awayTeam), match.awayFlag],
   ]),
 ) as Record<string, string>;
 
@@ -1315,7 +1286,7 @@ const OFFICIAL_STANDINGS: Record<string, Standing[]> = Object.fromEntries(
     group,
     teams.map((team) => ({
       team: team.team,
-      flag: TEAM_FLAG_LOOKUP[team.team] ?? '🏳️',
+      flag: TEAM_FLAG_LOOKUP[toTeamLookupKey(team.team)] ?? '🏳️',
       played: team.played,
       won: team.won,
       drawn: team.drawn,
@@ -1329,14 +1300,30 @@ const OFFICIAL_STANDINGS: Record<string, Standing[]> = Object.fromEntries(
 
 const createInitialMatches = (now = new Date()): FootballMatch[] =>
   syncMatchStatuses(
-    applyLiveScoreSnapshot(
-      OFFICIAL_INITIAL_MATCHES.map((match) => ({
-        ...match,
-        ...normalizeVenue(match.stadium, match.city),
-      })),
-    ),
+    OFFICIAL_INITIAL_MATCHES.map((match) => ({
+      ...match,
+      ...normalizeVenue(match.stadium, match.city),
+    })),
     now,
   );
+
+const formatDateHeading = (dateSgt: string) => dateSgt || 'Date TBD';
+
+const formatMatchVenue = (match: Pick<FootballMatch, 'stadium' | 'city'>) => {
+  const parts = [match.stadium, match.city].filter(Boolean);
+  return parts.length > 0 ? parts.join(' · ') : 'Venue unavailable';
+};
+
+const formatMatchLocation = (match: Pick<FootballMatch, 'stadium' | 'city'>) =>
+  match.city || match.stadium || 'Venue unavailable';
+
+const formatMatchKickoff = (match: Pick<FootballMatch, 'dateSgt' | 'timeSgt'>) => {
+  const parts = [match.dateSgt, match.timeSgt].filter(Boolean);
+  return parts.length > 0 ? parts.join(' · ') : 'Kickoff unavailable';
+};
+
+const formatMatchScoreline = (match: Pick<FootballMatch, 'status' | 'homeScore' | 'awayScore'>) =>
+  match.status === 'upcoming' ? 'Not started' : `${match.homeScore} - ${match.awayScore}`;
 
 const getDefaultSelectedMatchId = (matches: FootballMatch[]) =>
   matches.find((match) => match.status === 'live')?.id ?? matches[0]?.id ?? '';
@@ -1516,7 +1503,7 @@ export default function App() {
                       <div className="flex items-center gap-2 px-1">
                         <Calendar className="h-4 w-4 text-indigo-400" />
                         <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-300">
-                          {date} (SGT)
+                          {formatDateHeading(date)} (SGT)
                         </h3>
                         <div className="flex-1 h-px bg-slate-800/80 ml-2" />
                       </div>
@@ -1603,7 +1590,7 @@ export default function App() {
                                 <div className="mt-3.5 pt-3 border-t border-slate-800/40 flex items-center justify-between text-[11px] text-slate-500 font-medium">
                                   <span className="truncate max-w-[150px] sm:max-w-[180px] flex items-center gap-1">
                                     <MapPin className="h-3 w-3 shrink-0 text-slate-600" />
-                                    {match.city}
+                                    {formatMatchLocation(match)}
                                   </span>
 
                                   <span className="text-indigo-500 font-bold uppercase tracking-wider group-hover:text-indigo-400 flex items-center gap-0.5">
@@ -1665,7 +1652,7 @@ export default function App() {
                             </span>
                           ) : (
                             <span className="bg-indigo-600 text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                              {selectedMatch.dateSgt}
+                              {formatDateHeading(selectedMatch.dateSgt)}
                             </span>
                           )}
                         </div>
@@ -1682,7 +1669,7 @@ export default function App() {
                     </div>
 
                     <div className="mt-5 text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
-                      {selectedMatch.stadium} · {selectedMatch.city}
+                      {formatMatchVenue(selectedMatch)}
                     </div>
                   </div>
 
@@ -1700,8 +1687,16 @@ export default function App() {
                         <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
                           <div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Kickoff</div>
                           <div className="mt-1 font-extrabold text-slate-200">
-                            {selectedMatch.dateSgt} · {selectedMatch.timeSgt}
+                            {formatMatchKickoff(selectedMatch)}
                           </div>
+                        </div>
+                        <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                          <div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Venue</div>
+                          <div className="mt-1 font-extrabold text-slate-200">{formatMatchVenue(selectedMatch)}</div>
+                        </div>
+                        <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                          <div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Score</div>
+                          <div className="mt-1 font-extrabold text-slate-200">{formatMatchScoreline(selectedMatch)}</div>
                         </div>
                       </div>
                     </div>

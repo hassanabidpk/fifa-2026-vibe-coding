@@ -311,8 +311,19 @@ def parse_match_page_state(dom: str) -> tuple[str, int, int]:
 
     home_score, away_score, raw_state = state_match.groups()
     normalized_state = normalize_text(raw_state).lower()
-    status = 'live' if normalized_state == 'live' else 'finished'
+    status = 'finished' if is_finished_match_state(normalized_state) else 'live'
     return status, int(home_score), int(away_score)
+
+
+def is_finished_match_state(normalized_state: str) -> bool:
+    finished_markers = (
+        'full time',
+        'full-time',
+        'finished',
+        'after extra time',
+        'after penalties',
+    )
+    return any(marker in normalized_state for marker in finished_markers)
 
 
 def parse_fixture_kickoff_sgt(fixture: dict) -> datetime | None:

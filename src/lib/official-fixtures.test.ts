@@ -107,4 +107,43 @@ describe('buildOfficialMatchSeeds', () => {
       }),
     ]);
   });
+
+  it('resolves flags when official team names contain result suffixes', () => {
+    const results = buildOfficialMatchSeeds(
+      [
+        legacyMatch({ group: 'Group D', homeTeam: 'Paraguay', homeFlag: '🇵🇾', awayTeam: 'Australia', awayFlag: '🇦🇺', stadium: 'Boston Stadium' }),
+        legacyMatch({ group: 'Group C', homeTeam: 'Brazil', homeFlag: '🇧🇷', awayTeam: 'Morocco', awayFlag: '🇲🇦', stadium: 'Estadio Monterrey' }),
+      ],
+      [
+        officialFixture({
+          group: 'Round of 32',
+          homeTeam: 'Germany',
+          awayTeam: 'Paraguay (PSO 3-4)',
+          stadium: 'Boston Stadium',
+          status: 'finished',
+        }),
+        officialFixture({
+          group: 'Round of 32',
+          homeTeam: 'Netherlands',
+          awayTeam: 'Morocco (PSO 2-3)',
+          stadium: 'Estadio Monterrey',
+          status: 'finished',
+        }),
+      ],
+    );
+
+    expect(results).toEqual([
+      expect.objectContaining({ awayTeam: 'Paraguay (PSO 3-4)', awayFlag: '🇵🇾' }),
+      expect.objectContaining({ awayTeam: 'Morocco (PSO 2-3)', awayFlag: '🇲🇦' }),
+    ]);
+  });
+
+  it('resolves flags across apostrophe variants in official team names', () => {
+    const results = buildOfficialMatchSeeds(
+      [legacyMatch({ homeTeam: "Côte d'Ivoire", homeFlag: '🇨🇮', awayTeam: 'Ecuador', awayFlag: '🇪🇨' })],
+      [officialFixture({ homeTeam: 'Côte d’Ivoire', awayTeam: 'Norway' })],
+    );
+
+    expect(results[0].homeFlag).toBe('🇨🇮');
+  });
 });

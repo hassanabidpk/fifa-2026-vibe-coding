@@ -38,6 +38,8 @@ const updateMatchClockState = (match: FootballMatch, status: FootballMatch['stat
   minute,
 });
 
+const CLOCK_ONLY_LIVE_WINDOW_MINUTES = 165;
+
 const parseSgtKickoff = (match: Pick<FootballMatch, 'dateSgt' | 'timeSgt'>, year: number) => {
   const [, month, day] = match.dateSgt.split(' ');
   const paddedDay = String(day || '').padStart(2, '0');
@@ -63,7 +65,23 @@ const toMatchMinute = (elapsedMinutes: number) => {
     return 45;
   }
 
-  return Math.min(90, elapsedMinutes - 15);
+  if (elapsedMinutes <= 105) {
+    return elapsedMinutes - 15;
+  }
+
+  if (elapsedMinutes <= 120) {
+    return 90;
+  }
+
+  if (elapsedMinutes <= 135) {
+    return elapsedMinutes - 30;
+  }
+
+  if (elapsedMinutes <= 140) {
+    return 105;
+  }
+
+  return Math.min(120, elapsedMinutes - 35);
 };
 
 const toDisplayTimestamp = (match: Pick<FootballMatch, 'dateSgt' | 'timeSgt'>) => {
@@ -110,18 +128,22 @@ export const syncMatchStatuses = (matches: FootballMatch[], now: Date): Football
 
   return matches.map((match) => {
     const kickoff = parseSgtKickoff(match, currentYear);
+    if (!Number.isFinite(kickoff.getTime())) {
+      return match;
+    }
+
     const elapsedMinutes = Math.floor((now.getTime() - kickoff.getTime()) / 60000);
+
+    if (match.status === 'finished') {
+      return updateMatchClockState(match, 'finished', 90);
+    }
 
     if (elapsedMinutes < 0) {
       return updateMatchClockState(match, 'upcoming', 0);
     }
 
-    if (elapsedMinutes < 120) {
+    if (elapsedMinutes < CLOCK_ONLY_LIVE_WINDOW_MINUTES) {
       return updateMatchClockState(match, 'live', toMatchMinute(elapsedMinutes));
-    }
-
-    if (match.status === 'finished') {
-      return match;
     }
 
     return {
