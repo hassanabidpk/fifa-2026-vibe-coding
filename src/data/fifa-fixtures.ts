@@ -1062,7 +1062,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "city": "Monterrey",
     "status": "live",
     "homeScore": 1,
-    "awayScore": 0
+    "awayScore": 1
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289287/400021516",
