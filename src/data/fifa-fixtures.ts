@@ -1060,7 +1060,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "09:00 AM",
     "stadium": "Estadio Monterrey",
     "city": "Monterrey",
-    "status": "upcoming",
+    "status": "live",
     "homeScore": 0,
     "awayScore": 0
   },
