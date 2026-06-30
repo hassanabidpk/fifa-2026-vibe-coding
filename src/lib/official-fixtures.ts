@@ -34,9 +34,19 @@ export interface OfficialFixtureSeed {
 
 const normalizeWhitespace = (value: string) => value.replace(/\s+/g, ' ').trim();
 const normalizeKey = (value: string) => normalizeWhitespace(value).toLowerCase();
+export const toTeamLookupKey = (value: string) =>
+  normalizeWhitespace(value)
+    .replace(/[‘’]/g, "'")
+    .replace(/\s*\([^)]*\)\s*$/, '')
+    .toLowerCase();
 const isPlaceholderTeam = (team: string) => /^(Group\s+[A-Z]|Winner\s+match|Runner-up\s+match)/i.test(team);
 const buildFixtureKey = (fixture: Pick<OfficialFixtureSeed, 'group' | 'homeTeam' | 'awayTeam' | 'stadium'>) =>
-  [fixture.group, fixture.homeTeam, fixture.awayTeam, fixture.stadium].map(normalizeKey).join('::');
+  [
+    normalizeKey(fixture.group),
+    toTeamLookupKey(fixture.homeTeam),
+    toTeamLookupKey(fixture.awayTeam),
+    normalizeKey(fixture.stadium),
+  ].join('::');
 
 export const buildOfficialMatchSeeds = (
   legacyMatches: LegacyMatchSeed[],
@@ -46,16 +56,20 @@ export const buildOfficialMatchSeeds = (
   const teamFlags = new Map<string, string>();
 
   for (const match of legacyMatches) {
-    teamFlags.set(match.homeTeam, match.homeFlag);
-    teamFlags.set(match.awayTeam, match.awayFlag);
+    teamFlags.set(toTeamLookupKey(match.homeTeam), match.homeFlag);
+    teamFlags.set(toTeamLookupKey(match.awayTeam), match.awayFlag);
   }
 
   return officialFixtures.map((fixture, index) => {
     const legacyMatch = legacyByFixtureKey.get(buildFixtureKey(fixture));
     const homeFlag =
-      teamFlags.get(fixture.homeTeam) ?? legacyMatch?.homeFlag ?? (isPlaceholderTeam(fixture.homeTeam) ? '🏆' : '🏳️');
+      teamFlags.get(toTeamLookupKey(fixture.homeTeam)) ??
+      legacyMatch?.homeFlag ??
+      (isPlaceholderTeam(fixture.homeTeam) ? '🏆' : '🏳️');
     const awayFlag =
-      teamFlags.get(fixture.awayTeam) ?? legacyMatch?.awayFlag ?? (isPlaceholderTeam(fixture.awayTeam) ? '🏆' : '🏳️');
+      teamFlags.get(toTeamLookupKey(fixture.awayTeam)) ??
+      legacyMatch?.awayFlag ??
+      (isPlaceholderTeam(fixture.awayTeam) ? '🏆' : '🏳️');
 
     return {
       id: legacyMatch?.id ?? `m${fixture.matchNumber ?? index + 1}`,

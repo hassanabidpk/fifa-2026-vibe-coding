@@ -59,7 +59,7 @@ describe('match-engine', () => {
     expect(sortMatchesForDisplay(matches, 'upcoming').map((match) => match.id)).toEqual(['undated', 'old', 'early', 'late']);
   });
 
-  it('syncs match statuses to the current SGT kickoff window without changing score data', () => {
+  it('keeps official finished matches finished while clock-syncing upcoming matches', () => {
     const matches: FootballMatch[] = [
       {
         ...baseMatch,
@@ -74,20 +74,21 @@ describe('match-engine', () => {
         awayScore: 1,
       },
       { ...baseMatch, id: 'm6', homeTeam: 'New Zealand', awayTeam: 'Belgium', dateSgt: 'Sat, Jun 27', timeSgt: '11:00 AM', status: 'finished', minute: 90, homeScore: 0, awayScore: 3 },
-      { ...baseMatch, id: 'm7', homeTeam: 'Panama', awayTeam: 'England', dateSgt: 'Sun, Jun 28', timeSgt: '05:00 AM', status: 'live', minute: 54 },
-      { ...baseMatch, id: 'm8', homeTeam: 'Croatia', awayTeam: 'Ghana', dateSgt: 'Sun, Jun 28', timeSgt: '05:00 AM', status: 'live', minute: 22 },
+      { ...baseMatch, id: 'm7', homeTeam: 'Panama', awayTeam: 'England', dateSgt: 'Sun, Jun 28', timeSgt: '05:00 AM', status: 'upcoming', minute: 0 },
+      { ...baseMatch, id: 'm8', homeTeam: 'Croatia', awayTeam: 'Ghana', dateSgt: 'Sat, Jun 27', timeSgt: '11:00 AM', status: 'upcoming', minute: 0 },
     ];
 
     const synced = syncMatchStatuses(matches, new Date('2026-06-27T11:24:00+08:00'));
 
     expect(synced.map((match) => [match.id, match.status])).toEqual([
-      ['m5', 'live'],
-      ['m6', 'live'],
+      ['m5', 'finished'],
+      ['m6', 'finished'],
       ['m7', 'upcoming'],
-      ['m8', 'upcoming'],
+      ['m8', 'live'],
     ]);
-    expect(synced[0]).toMatchObject({ minute: 24, homeScore: 1, awayScore: 1 });
-    expect(synced[1]).toMatchObject({ minute: 24, homeScore: 0, awayScore: 3 });
+    expect(synced[0]).toMatchObject({ minute: 90, homeScore: 1, awayScore: 1 });
+    expect(synced[1]).toMatchObject({ minute: 90, homeScore: 0, awayScore: 3 });
+    expect(synced[3]).toMatchObject({ minute: 24 });
   });
 
   it('holds the live clock at halftime and resumes the second half after the break', () => {
@@ -129,6 +130,46 @@ describe('match-engine', () => {
     const synced = syncMatchStatuses([match], new Date('2026-06-28T10:31:00+08:00'))[0];
 
     expect(synced).toMatchObject({ status: 'live', minute: 31, homeScore: 0, awayScore: 2 });
+  });
+
+  it('keeps official live matches active through extra time', () => {
+    const match: FootballMatch = {
+      ...baseMatch,
+      id: 'm74',
+      group: 'Round of 32',
+      homeTeam: 'Germany',
+      awayTeam: 'Paraguay',
+      dateSgt: 'Tue, Jun 30',
+      timeSgt: '04:30 AM',
+      status: 'live',
+      minute: 90,
+      homeScore: 1,
+      awayScore: 1,
+    };
+
+    const synced = syncMatchStatuses([match], new Date('2026-06-30T06:42:00+08:00'))[0];
+
+    expect(synced).toMatchObject({ status: 'live', minute: 102, homeScore: 1, awayScore: 1 });
+  });
+
+  it('ends stale official live matches after the extra-time fallback window', () => {
+    const match: FootballMatch = {
+      ...baseMatch,
+      id: 'm75',
+      group: 'Round of 32',
+      homeTeam: 'Netherlands',
+      awayTeam: 'Morocco',
+      dateSgt: 'Tue, Jun 30',
+      timeSgt: '09:00 AM',
+      status: 'live',
+      minute: 90,
+      homeScore: 1,
+      awayScore: 1,
+    };
+
+    const synced = syncMatchStatuses([match], new Date('2026-06-30T12:00:00+08:00'))[0];
+
+    expect(synced).toMatchObject({ status: 'finished', minute: 90, homeScore: 1, awayScore: 1 });
   });
 
   it('correctly parses and syncs matches with single-digit day numbers in July', () => {

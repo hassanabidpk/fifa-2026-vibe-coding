@@ -16,6 +16,17 @@ class ParseMatchPageStateTests(unittest.TestCase):
 
         self.assertEqual(parse_match_page_state(dom), ('live', 0, 1))
 
+    def test_treats_in_match_phase_labels_as_live(self) -> None:
+        dom = '''
+        <html>
+          <head>
+            <meta name="description" content="Round of 32, 1-1, Extra Time, Boston Stadium, 2026-06-29T20:30:00Z">
+          </head>
+        </html>
+        '''
+
+        self.assertEqual(parse_match_page_state(dom), ('live', 1, 1))
+
     def test_treats_full_time_pages_as_finished_results(self) -> None:
         dom = '''
         <html>
