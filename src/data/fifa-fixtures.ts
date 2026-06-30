@@ -1251,7 +1251,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 89,
     "group": "Round of 16",
     "homeTeam": "Paraguay",
-    "awayTeam": "Winner match 77",
+    "awayTeam": "France",
     "dateSgt": "Sun, Jul 5",
     "timeSgt": "05:00 AM",
     "stadium": "Philadelphia Stadium",
