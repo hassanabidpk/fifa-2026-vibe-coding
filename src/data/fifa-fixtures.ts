@@ -1088,7 +1088,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "05:00 AM",
     "stadium": "New York New Jersey Stadium",
     "city": "New Jersey",
-    "status": "upcoming",
+    "status": "live",
     "homeScore": 0,
     "awayScore": 0
   },
