@@ -1041,7 +1041,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 74,
     "group": "Round of 32",
     "homeTeam": "Germany",
-    "awayTeam": "Paraguay (3-4 PSO)",
+    "awayTeam": "Paraguay (PSO 3-4)",
     "dateSgt": "Tue, Jun 30",
     "timeSgt": "04:30 AM",
     "stadium": "Boston Stadium",
