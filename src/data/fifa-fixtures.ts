@@ -1102,7 +1102,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "01:00 AM",
     "stadium": "Dallas Stadium",
     "city": "Dallas",
-    "status": "upcoming",
+    "status": "live",
     "homeScore": 0,
     "awayScore": 0
   },
