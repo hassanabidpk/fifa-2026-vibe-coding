@@ -1061,7 +1061,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "stadium": "Estadio Monterrey",
     "city": "Monterrey",
     "status": "live",
-    "homeScore": 0,
+    "homeScore": 1,
     "awayScore": 0
   },
   {
