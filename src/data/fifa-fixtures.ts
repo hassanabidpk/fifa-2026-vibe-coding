@@ -1279,7 +1279,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 91,
     "group": "Round of 16",
     "homeTeam": "Brazil",
-    "awayTeam": "Winner match 78",
+    "awayTeam": "Norway",
     "dateSgt": "Mon, Jul 6",
     "timeSgt": "04:00 AM",
     "stadium": "New York New Jersey Stadium",
