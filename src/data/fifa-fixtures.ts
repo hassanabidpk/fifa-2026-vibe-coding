@@ -1159,7 +1159,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "stadium": "Seattle Stadium",
     "city": "Seattle",
     "status": "live",
-    "homeScore": 1,
+    "homeScore": 2,
     "awayScore": 2
   },
   {
