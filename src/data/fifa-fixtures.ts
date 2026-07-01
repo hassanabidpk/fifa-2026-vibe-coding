@@ -1116,7 +1116,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "09:00 AM",
     "stadium": "Mexico City Stadium",
     "city": "Stadium City Mexico City",
-    "status": "live",
+    "status": "finished",
     "homeScore": 2,
     "awayScore": 0
   },
@@ -1292,7 +1292,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021531",
     "matchNumber": 92,
     "group": "Round of 16",
-    "homeTeam": "Winner match 79",
+    "homeTeam": "Mexico",
     "awayTeam": "Winner match 80",
     "dateSgt": "Mon, Jul 6",
     "timeSgt": "08:00 AM",
