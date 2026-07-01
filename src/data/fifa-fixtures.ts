@@ -1130,7 +1130,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "12:00 AM",
     "stadium": "Atlanta Stadium",
     "city": "Atlanta",
-    "status": "live",
+    "status": "finished",
     "homeScore": 2,
     "awayScore": 1
   },
@@ -1293,7 +1293,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 92,
     "group": "Round of 16",
     "homeTeam": "Mexico",
-    "awayTeam": "Winner match 80",
+    "awayTeam": "England",
     "dateSgt": "Mon, Jul 6",
     "timeSgt": "08:00 AM",
     "stadium": "Mexico City Stadium",
