@@ -1186,8 +1186,8 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "03:00 AM",
     "stadium": "Los Angeles Stadium",
     "city": "Los Angeles",
-    "status": "live",
-    "homeScore": 1,
+    "status": "finished",
+    "homeScore": 3,
     "awayScore": 0
   },
   {
@@ -1307,7 +1307,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 93,
     "group": "Round of 16",
     "homeTeam": "Winner match 83",
-    "awayTeam": "Winner match 84",
+    "awayTeam": "Spain",
     "dateSgt": "Tue, Jul 7",
     "timeSgt": "03:00 AM",
     "stadium": "Dallas Stadium",
