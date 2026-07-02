@@ -1144,7 +1144,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "08:00 AM",
     "stadium": "San Francisco Bay Area Stadium",
     "city": "San Francisco Bay Area",
-    "status": "live",
+    "status": "finished",
     "homeScore": 2,
     "awayScore": 0
   },
