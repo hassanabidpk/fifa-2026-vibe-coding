@@ -1320,7 +1320,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021534",
     "matchNumber": 94,
     "group": "Round of 16",
-    "homeTeam": "Winner match 81",
+    "homeTeam": "USA",
     "awayTeam": "Belgium",
     "dateSgt": "Tue, Jul 7",
     "timeSgt": "08:00 AM",
