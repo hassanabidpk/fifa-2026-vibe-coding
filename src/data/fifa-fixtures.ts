@@ -1201,7 +1201,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "stadium": "BC Place Vancouver",
     "city": "Vancouver",
     "status": "live",
-    "homeScore": 1,
+    "homeScore": 2,
     "awayScore": 0
   },
   {
