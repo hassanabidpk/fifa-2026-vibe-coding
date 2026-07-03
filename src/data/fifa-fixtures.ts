@@ -1306,7 +1306,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021529",
     "matchNumber": 93,
     "group": "Round of 16",
-    "homeTeam": "Winner match 83",
+    "homeTeam": "Portugal",
     "awayTeam": "Spain",
     "dateSgt": "Tue, Jul 7",
     "timeSgt": "03:00 AM",
