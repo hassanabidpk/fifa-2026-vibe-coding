@@ -1200,7 +1200,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "11:00 AM",
     "stadium": "BC Place Vancouver",
     "city": "Vancouver",
-    "status": "live",
+    "status": "finished",
     "homeScore": 2,
     "awayScore": 0
   },
@@ -1348,7 +1348,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021535",
     "matchNumber": 96,
     "group": "Round of 16",
-    "homeTeam": "Winner match 85",
+    "homeTeam": "Switzerland",
     "awayTeam": "Winner match 87",
     "dateSgt": "Wed, Jul 8",
     "timeSgt": "04:00 AM",
