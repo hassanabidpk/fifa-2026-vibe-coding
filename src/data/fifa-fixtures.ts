@@ -1243,8 +1243,8 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "stadium": "Dallas Stadium",
     "city": "Dallas",
     "status": "live",
-    "homeScore": 0,
-    "awayScore": 0
+    "homeScore": 1,
+    "awayScore": 1
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021533",
