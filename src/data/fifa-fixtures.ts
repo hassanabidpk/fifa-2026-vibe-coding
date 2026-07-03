@@ -1172,7 +1172,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "07:00 AM",
     "stadium": "Toronto Stadium",
     "city": "Toronto",
-    "status": "live",
+    "status": "finished",
     "homeScore": 2,
     "awayScore": 1
   },
