@@ -1214,7 +1214,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "06:00 AM",
     "stadium": "Miami Stadium",
     "city": "Miami",
-    "status": "upcoming",
+    "status": "live",
     "homeScore": 0,
     "awayScore": 0
   },
