@@ -1256,7 +1256,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "05:00 AM",
     "stadium": "Philadelphia Stadium",
     "city": "Philadelphia",
-    "status": "live",
+    "status": "finished",
     "homeScore": 0,
     "awayScore": 1
   },
@@ -1362,7 +1362,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289289/400021536",
     "matchNumber": 97,
     "group": "Quarterfinals",
-    "homeTeam": "Winner match 89",
+    "homeTeam": "France",
     "awayTeam": "Morocco",
     "dateSgt": "Fri, Jul 10",
     "timeSgt": "04:00 AM",
