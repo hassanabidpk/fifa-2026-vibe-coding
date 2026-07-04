@@ -1209,14 +1209,14 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 86,
     "group": "Round of 32",
     "homeTeam": "Argentina",
-    "awayTeam": "Cabo Verde",
+    "awayTeam": "Cabo Verde (AET)",
     "dateSgt": "Sat, Jul 4",
     "timeSgt": "06:00 AM",
     "stadium": "Miami Stadium",
     "city": "Miami",
-    "status": "live",
-    "homeScore": 1,
-    "awayScore": 1
+    "status": "finished",
+    "homeScore": 3,
+    "awayScore": 2
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289287/400021517",
@@ -1334,7 +1334,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021528",
     "matchNumber": 95,
     "group": "Round of 16",
-    "homeTeam": "Winner match 86",
+    "homeTeam": "Argentina",
     "awayTeam": "Egypt",
     "dateSgt": "Wed, Jul 8",
     "timeSgt": "12:00 AM",
