@@ -1270,7 +1270,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "01:00 AM",
     "stadium": "Houston Stadium",
     "city": "Houston",
-    "status": "upcoming",
+    "status": "live",
     "homeScore": 0,
     "awayScore": 0
   },
@@ -1349,7 +1349,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 96,
     "group": "Round of 16",
     "homeTeam": "Switzerland",
-    "awayTeam": "Winner match 87",
+    "awayTeam": "Colombia",
     "dateSgt": "Wed, Jul 8",
     "timeSgt": "04:00 AM",
     "stadium": "BC Place Vancouver",

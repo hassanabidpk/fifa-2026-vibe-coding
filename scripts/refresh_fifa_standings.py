@@ -20,7 +20,9 @@ STANDINGS_START_MARKER = 'Standings and Group Tables - Group A'
 GROUP_NAMES = [f'Group {chr(65 + index)}' for index in range(12)]
 END_MARKERS = ['Your Privacy', 'Cookies Settings', 'Privacy Preference Center']
 KNOCKOUT_STAGE_MAP = {
+    'FIFA World Cup 2026 – Round of 32 results': 'Round of 32',
     'FIFA World Cup 2026 – Round of 32 fixtures': 'Round of 32',
+    'FIFA World Cup 2026 Round of 16 fixtures and results': 'Round of 16',
     'FIFA World Cup 2026 Round of 16 fixtures': 'Round of 16',
     'FIFA World Cup 2026 quarter-final fixtures': 'Quarterfinals',
     'FIFA World Cup 2026 semi-final fixtures': 'Semifinals',
@@ -214,11 +216,12 @@ def parse_fixture_line(tokens: list[tuple[str, str, str]], current_stage: str) -
         match_number = int(match_number_match.group(1))
 
     if current_stage == 'Group Stage':
-        stage_match = re.search(r'[-–]\s*(Group\s+[A-L])\s*[-–]\s*(.+)$', suffix)
-        if not stage_match:
+        suffix_parts = [part.strip() for part in re.split(r'\s*[-–]\s*', suffix) if part.strip()]
+        group = next((part for part in suffix_parts if re.fullmatch(r'Group\s+[A-L]', part)), None)
+        stadium = next((part for part in suffix_parts if not re.fullmatch(r'Group\s+[A-L]', part)), None)
+        if not group or not stadium or len(suffix_parts) != 2:
             raise ScriptError(f'Unable to parse group-stage suffix: {suffix}')
-        group = stage_match.group(1)
-        stadium = normalize_text(stage_match.group(2))
+        stadium = normalize_text(stadium)
     else:
         group = current_stage
         stadium = normalize_text(re.sub(r'^[-–]\s*(?:(?:\d{1,2}:\d{2})\s*[-–]\s*)?', '', suffix))
