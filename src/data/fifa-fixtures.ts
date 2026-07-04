@@ -1272,7 +1272,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "city": "Houston",
     "status": "live",
     "homeScore": 0,
-    "awayScore": 0
+    "awayScore": 1
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021532",
