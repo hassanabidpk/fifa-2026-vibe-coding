@@ -1363,7 +1363,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 97,
     "group": "Quarterfinals",
     "homeTeam": "Winner match 89",
-    "awayTeam": "Winner match 90",
+    "awayTeam": "Morocco",
     "dateSgt": "Fri, Jul 10",
     "timeSgt": "04:00 AM",
     "stadium": "Boston Stadium",
