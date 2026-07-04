@@ -1256,7 +1256,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "05:00 AM",
     "stadium": "Philadelphia Stadium",
     "city": "Philadelphia",
-    "status": "upcoming",
+    "status": "live",
     "homeScore": 0,
     "awayScore": 0
   },
