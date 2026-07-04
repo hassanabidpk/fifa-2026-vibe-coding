@@ -1228,8 +1228,8 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "09:30 AM",
     "stadium": "Kansas City Stadium",
     "city": "Stadium City Kansas City",
-    "status": "upcoming",
-    "homeScore": 0,
+    "status": "live",
+    "homeScore": 1,
     "awayScore": 0
   },
   {
