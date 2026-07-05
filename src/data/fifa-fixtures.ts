@@ -1284,9 +1284,9 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "04:00 AM",
     "stadium": "New York New Jersey Stadium",
     "city": "New Jersey",
-    "status": "live",
-    "homeScore": 0,
-    "awayScore": 1
+    "status": "finished",
+    "homeScore": 1,
+    "awayScore": 2
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021531",
@@ -1390,7 +1390,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289289/400021539",
     "matchNumber": 99,
     "group": "Quarterfinals",
-    "homeTeam": "Winner match 91",
+    "homeTeam": "Norway",
     "awayTeam": "Winner match 92",
     "dateSgt": "Sun, Jul 12",
     "timeSgt": "05:00 AM",
