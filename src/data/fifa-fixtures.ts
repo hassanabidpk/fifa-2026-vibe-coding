@@ -1312,9 +1312,9 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "03:00 AM",
     "stadium": "Dallas Stadium",
     "city": "Dallas",
-    "status": "live",
+    "status": "finished",
     "homeScore": 0,
-    "awayScore": 0
+    "awayScore": 1
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021534",
@@ -1376,7 +1376,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289289/400021538",
     "matchNumber": 98,
     "group": "Quarterfinals",
-    "homeTeam": "Winner match 93",
+    "homeTeam": "Spain",
     "awayTeam": "Winner match 94",
     "dateSgt": "Sat, Jul 11",
     "timeSgt": "03:00 AM",
