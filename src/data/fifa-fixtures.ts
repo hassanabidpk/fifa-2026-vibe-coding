@@ -1298,9 +1298,9 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "08:00 AM",
     "stadium": "Mexico City Stadium",
     "city": "Stadium City Mexico City",
-    "status": "upcoming",
-    "homeScore": 0,
-    "awayScore": 0
+    "status": "live",
+    "homeScore": 1,
+    "awayScore": 2
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021529",
