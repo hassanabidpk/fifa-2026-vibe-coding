@@ -1298,7 +1298,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "08:00 AM",
     "stadium": "Mexico City Stadium",
     "city": "Stadium City Mexico City",
-    "status": "live",
+    "status": "finished",
     "homeScore": 2,
     "awayScore": 3
   },
