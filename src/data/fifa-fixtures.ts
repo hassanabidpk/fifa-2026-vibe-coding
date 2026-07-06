@@ -1391,7 +1391,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 99,
     "group": "Quarterfinals",
     "homeTeam": "Norway",
-    "awayTeam": "Winner match 92",
+    "awayTeam": "England",
     "dateSgt": "Sun, Jul 12",
     "timeSgt": "05:00 AM",
     "stadium": "Miami Stadium",
