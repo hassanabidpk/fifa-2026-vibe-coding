@@ -1326,9 +1326,9 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "08:00 AM",
     "stadium": "Seattle Stadium",
     "city": "Seattle",
-    "status": "live",
+    "status": "finished",
     "homeScore": 1,
-    "awayScore": 3
+    "awayScore": 4
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021528",
