@@ -1340,7 +1340,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "12:00 AM",
     "stadium": "Atlanta Stadium",
     "city": "Atlanta",
-    "status": "live",
+    "status": "finished",
     "homeScore": 3,
     "awayScore": 2
   },
@@ -1404,7 +1404,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289289/400021537",
     "matchNumber": 100,
     "group": "Quarterfinals",
-    "homeTeam": "Winner match 95",
+    "homeTeam": "Argentina",
     "awayTeam": "Winner match 96",
     "dateSgt": "Sun, Jul 12",
     "timeSgt": "09:00 AM",
