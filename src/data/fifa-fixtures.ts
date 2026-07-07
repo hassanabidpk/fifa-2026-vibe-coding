@@ -1377,7 +1377,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 98,
     "group": "Quarterfinals",
     "homeTeam": "Spain",
-    "awayTeam": "Winner match 94",
+    "awayTeam": "Belgium",
     "dateSgt": "Sat, Jul 11",
     "timeSgt": "03:00 AM",
     "stadium": "Los Angeles Stadium",
