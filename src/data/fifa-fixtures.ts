@@ -1361,7 +1361,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289289/400021536",
     "matchNumber": 97,
-    "group": "Quarterfinals",
+    "group": "Round of 16",
     "homeTeam": "France",
     "awayTeam": "Morocco",
     "dateSgt": "Fri, Jul 10",
@@ -1375,7 +1375,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289289/400021538",
     "matchNumber": 98,
-    "group": "Quarterfinals",
+    "group": "Round of 16",
     "homeTeam": "Spain",
     "awayTeam": "Belgium",
     "dateSgt": "Sat, Jul 11",
@@ -1389,7 +1389,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289289/400021539",
     "matchNumber": 99,
-    "group": "Quarterfinals",
+    "group": "Round of 16",
     "homeTeam": "Norway",
     "awayTeam": "England",
     "dateSgt": "Sun, Jul 12",
@@ -1403,7 +1403,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289289/400021537",
     "matchNumber": 100,
-    "group": "Quarterfinals",
+    "group": "Round of 16",
     "homeTeam": "Argentina",
     "awayTeam": "Switzerland",
     "dateSgt": "Sun, Jul 12",
@@ -1418,7 +1418,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289290/400021541",
     "matchNumber": 101,
     "group": "Semifinals",
-    "homeTeam": "Winner match 97",
+    "homeTeam": "France",
     "awayTeam": "Winner match 98",
     "dateSgt": "Wed, Jul 15",
     "timeSgt": "03:00 AM",
