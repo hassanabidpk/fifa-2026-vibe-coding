@@ -1368,7 +1368,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "04:00 AM",
     "stadium": "Boston Stadium",
     "city": "Boston",
-    "status": "upcoming",
+    "status": "live",
     "homeScore": 0,
     "awayScore": 0
   },
