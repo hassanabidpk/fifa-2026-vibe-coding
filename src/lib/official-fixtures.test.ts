@@ -15,9 +15,12 @@ const legacyMatch = (overrides: Partial<LegacyMatchSeed>): LegacyMatchSeed => ({
   status: 'finished',
   homeScore: 0,
   awayScore: 0,
+  decidedByPenalties: false,
+  homePenaltyScore: null,
+  awayPenaltyScore: null,
   minute: 90,
   ...overrides,
-});
+}) as LegacyMatchSeed;
 
 const officialFixture = (overrides: Partial<OfficialFixtureSeed>): OfficialFixtureSeed => ({
   sourceUrl: 'https://www.fifa.com/example',
@@ -32,8 +35,11 @@ const officialFixture = (overrides: Partial<OfficialFixtureSeed>): OfficialFixtu
   status: 'finished',
   homeScore: 2,
   awayScore: 0,
+  decidedByPenalties: false,
+  homePenaltyScore: null,
+  awayPenaltyScore: null,
   ...overrides,
-});
+}) as OfficialFixtureSeed;
 
 describe('buildOfficialMatchSeeds', () => {
   it('preserves legacy flags and kickoff metadata while applying official result updates', () => {
@@ -108,7 +114,7 @@ describe('buildOfficialMatchSeeds', () => {
     ]);
   });
 
-  it('resolves flags when official team names contain result suffixes', () => {
+  it('resolves flags and penalty metadata when official team names contain result suffixes', () => {
     const results = buildOfficialMatchSeeds(
       [
         legacyMatch({ group: 'Group D', homeTeam: 'Paraguay', homeFlag: '🇵🇾', awayTeam: 'Australia', awayFlag: '🇦🇺', stadium: 'Boston Stadium' }),
@@ -133,8 +139,20 @@ describe('buildOfficialMatchSeeds', () => {
     );
 
     expect(results).toEqual([
-      expect.objectContaining({ awayTeam: 'Paraguay (PSO 3-4)', awayFlag: '🇵🇾' }),
-      expect.objectContaining({ awayTeam: 'Morocco (PSO 2-3)', awayFlag: '🇲🇦' }),
+      expect.objectContaining({
+        awayTeam: 'Paraguay',
+        awayFlag: '🇵🇾',
+        decidedByPenalties: true,
+        homePenaltyScore: 3,
+        awayPenaltyScore: 4,
+      }),
+      expect.objectContaining({
+        awayTeam: 'Morocco',
+        awayFlag: '🇲🇦',
+        decidedByPenalties: true,
+        homePenaltyScore: 2,
+        awayPenaltyScore: 3,
+      }),
     ]);
   });
 

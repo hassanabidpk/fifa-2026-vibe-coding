@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Trophy,
   Calendar,
@@ -21,6 +21,11 @@ import { OFFICIAL_FIFA_FIXTURES } from './data/fifa-fixtures';
 import { OFFICIAL_FIFA_STANDINGS_TEXT } from './data/fifa-standings';
 import { parseFifaStandingsText } from './lib/fifa-standings';
 import { buildOfficialMatchSeeds, toTeamLookupKey } from './lib/official-fixtures';
+import {
+  formatMatchScoreline as formatOfficialMatchScoreline,
+  getPenaltyShootoutOutcome,
+  type PenaltyShootoutMetadata,
+} from './lib/match-display';
 import { getThemeTokens, type ThemeMode } from './lib/theme';
 import {
   buildStandingsFromMatches,
@@ -30,7 +35,7 @@ import {
 } from './lib/standings';
 import './App.css';
 
-interface FootballMatch {
+interface FootballMatch extends Partial<PenaltyShootoutMetadata> {
   id: string;
   group: string;
   homeTeam: string;
@@ -1266,6 +1271,9 @@ const OFFICIAL_INITIAL_MATCHES: FootballMatch[] = buildOfficialMatchSeeds(
     status: match.status,
     homeScore: match.homeScore,
     awayScore: match.awayScore,
+    decidedByPenalties: false,
+    homePenaltyScore: null,
+    awayPenaltyScore: null,
     minute: match.minute,
   })),
   OFFICIAL_FIFA_FIXTURES,
@@ -1322,14 +1330,24 @@ const formatMatchKickoff = (match: Pick<FootballMatch, 'dateSgt' | 'timeSgt'>) =
   return parts.length > 0 ? parts.join(' · ') : 'Kickoff unavailable';
 };
 
-const formatMatchScoreline = (match: Pick<FootballMatch, 'status' | 'homeScore' | 'awayScore'>) =>
-  match.status === 'upcoming' ? 'Not started' : `${match.homeScore} - ${match.awayScore}`;
+const formatMatchScoreline = (
+  match: Pick<FootballMatch, 'status' | 'homeScore' | 'awayScore' | 'decidedByPenalties' | 'homePenaltyScore' | 'awayPenaltyScore'>,
+) =>
+  formatOfficialMatchScoreline({
+    status: match.status,
+    homeScore: match.homeScore,
+    awayScore: match.awayScore,
+    decidedByPenalties: match.decidedByPenalties ?? false,
+    homePenaltyScore: match.homePenaltyScore ?? null,
+    awayPenaltyScore: match.awayPenaltyScore ?? null,
+  });
 
 const getDefaultSelectedMatchId = (matches: FootballMatch[]) =>
   matches.find((match) => match.status === 'live')?.id ?? matches[0]?.id ?? '';
 
 export default function App() {
   const [matches, setMatches] = useState<FootballMatch[]>(() => createInitialMatches());
+  const detailPanelRef = useRef<HTMLDivElement | null>(null);
   const standings = useMemo<Record<string, Standing[]>>(
     () => (Object.keys(OFFICIAL_STANDINGS).length > 0 ? OFFICIAL_STANDINGS : INITIAL_STANDINGS),
     [],
@@ -1341,12 +1359,19 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const themeTokens = useMemo(() => getThemeTokens(theme), [theme]);
   const standingsSnapshot = useMemo(() => buildStandingsSnapshot(standings), [standings]);
-  const knockoutBracket = useMemo(() => buildKnockoutBracket(standingsSnapshot), [standingsSnapshot]);
+  const knockoutBracket = useMemo(() => buildKnockoutBracket(matches), [matches]);
   const isThirdPlaceTableProvisional = standingsSnapshot.thirdPlaceTeams.length < 12;
   const selectedMatch = useMemo(
     () => matches.find((match) => match.id === selectedMatchId) ?? null,
     [matches, selectedMatchId],
   );
+  const selectedPenaltyOutcome = selectedMatch
+    ? getPenaltyShootoutOutcome({
+        decidedByPenalties: selectedMatch.decidedByPenalties ?? false,
+        homePenaltyScore: selectedMatch.homePenaltyScore ?? null,
+        awayPenaltyScore: selectedMatch.awayPenaltyScore ?? null,
+      })
+    : null;
 
   // Keep live statuses and minutes aligned to the real SGT clock
   useEffect(() => {
@@ -1359,6 +1384,12 @@ export default function App() {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth >= 1024 || !selectedMatch) return;
+
+    detailPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [selectedMatch]);
 
   // Filter matches based on search and active status tab
   const filteredMatches = useMemo(
@@ -1514,6 +1545,11 @@ export default function App() {
                           .map((match) => {
                             const isSelected = selectedMatch?.id === match.id;
                             const hasLiveGlow = match.status === 'live';
+                            const penaltyOutcome = getPenaltyShootoutOutcome({
+                              decidedByPenalties: match.decidedByPenalties ?? false,
+                              homePenaltyScore: match.homePenaltyScore ?? null,
+                              awayPenaltyScore: match.awayPenaltyScore ?? null,
+                            });
 
                             return (
                               <div
@@ -1538,7 +1574,7 @@ export default function App() {
                                     </span>
                                   ) : match.status === 'finished' ? (
                                     <span className="bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                                      Full Time
+                                      {penaltyOutcome ? `Full Time · ${penaltyOutcome}` : 'Full Time'}
                                     </span>
                                   ) : (
                                     <span className="flex items-center gap-1 bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-full uppercase tracking-wider">
@@ -1594,7 +1630,7 @@ export default function App() {
                                   </span>
 
                                   <span className="text-indigo-500 font-bold uppercase tracking-wider group-hover:text-indigo-400 flex items-center gap-0.5">
-                                    Match Details
+                                    {isSelected ? 'Selected' : 'Match Details'}
                                     <ChevronRight className="h-3 w-3" />
                                   </span>
                                 </div>
@@ -1609,7 +1645,7 @@ export default function App() {
             </div>
 
             {/* DETAILED MATCH FOCUS SIDE PANEL (Right 1 Column) */}
-            <div className="lg:col-span-1 space-y-6">
+            <div ref={detailPanelRef} className="lg:col-span-1 space-y-6">
               {selectedMatch ? (
                 <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden sticky top-[90px]">
                   {/* Card Banner Background */}
@@ -1634,10 +1670,17 @@ export default function App() {
                             {selectedMatch.timeSgt}
                           </div>
                         ) : (
-                          <div className="text-4xl font-black tracking-tight text-white flex items-center gap-2">
-                            <span>{selectedMatch.homeScore}</span>
-                            <span className="text-slate-600 text-3xl">:</span>
-                            <span>{selectedMatch.awayScore}</span>
+                          <div className="flex flex-col items-center gap-1">
+                            <div className="text-4xl font-black tracking-tight text-white flex items-center gap-2">
+                              <span>{selectedMatch.homeScore}</span>
+                              <span className="text-slate-600 text-3xl">:</span>
+                              <span>{selectedMatch.awayScore}</span>
+                            </div>
+                            {selectedPenaltyOutcome ? (
+                              <div className="text-[11px] font-black uppercase tracking-widest text-amber-300">
+                                {selectedPenaltyOutcome}
+                              </div>
+                            ) : null}
                           </div>
                         )}
 
@@ -1648,7 +1691,7 @@ export default function App() {
                             </span>
                           ) : selectedMatch.status === 'finished' ? (
                             <span className="bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                              Full Time
+                              {selectedPenaltyOutcome ? `Full Time · ${selectedPenaltyOutcome}` : 'Full Time'}
                             </span>
                           ) : (
                             <span className="bg-indigo-600 text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider">
@@ -1682,7 +1725,10 @@ export default function App() {
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
                           <div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Status</div>
-                          <div className="mt-1 font-extrabold text-slate-200 capitalize">{selectedMatch.status}</div>
+                          <div className="mt-1 font-extrabold text-slate-200 capitalize">
+                            {selectedMatch.status}
+                            {selectedPenaltyOutcome ? ` · ${selectedPenaltyOutcome}` : ''}
+                          </div>
                         </div>
                         <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
                           <div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Kickoff</div>
@@ -1880,14 +1926,14 @@ export default function App() {
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
                   <h3 className="text-sm font-black tracking-wider text-slate-100 uppercase">
-                    Projected Knockout Bracket
+                    Official Knockout Bracket
                   </h3>
                   <p className="text-xs text-slate-400 mt-1">
-                    Projection seeded from the official FIFA standings page: group winners, runners-up, and the current best eight third-placed teams.
+                    Knockout ties from the official FIFA fixture feed, including resolved winners and remaining winner placeholders.
                   </p>
                 </div>
                 <span className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-indigo-300">
-                  Auto-updates when standings data refreshes
+                  Auto-updates when fixture data refreshes
                 </span>
               </div>
             </div>
@@ -1903,7 +1949,10 @@ export default function App() {
                   </div>
 
                   <div className="space-y-3">
-                    {round.matches.map((match) => (
+                    {round.matches.map((match) => {
+                      const penaltyOutcome = getPenaltyShootoutOutcome(match);
+
+                      return (
                       <article key={match.id} className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
                         <div className="mb-3 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-500">
                           <span>{match.id}</span>
@@ -1920,7 +1969,12 @@ export default function App() {
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center justify-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">vs</div>
+                          <div className="flex items-center justify-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+                            <div className="flex flex-col items-center gap-1">
+                              <span>{match.status === 'upcoming' ? 'vs' : `${match.homeScore} : ${match.awayScore}`}</span>
+                              {penaltyOutcome ? <span className="text-[9px] tracking-widest text-amber-300">{penaltyOutcome}</span> : null}
+                            </div>
+                          </div>
                           <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-900/80 px-3 py-2">
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="text-xl">{match.awayFlag}</span>
@@ -1932,7 +1986,8 @@ export default function App() {
                           </div>
                         </div>
                       </article>
-                    ))}
+                      );
+                    })}
                   </div>
                 </section>
               ))}

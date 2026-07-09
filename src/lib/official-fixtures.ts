@@ -1,6 +1,8 @@
+import { normalizeMatchTeamsAndScore, type PenaltyShootoutMetadata } from './match-display';
+
 export type MatchStatus = 'upcoming' | 'live' | 'finished';
 
-export interface LegacyMatchSeed {
+export interface LegacyMatchSeed extends PenaltyShootoutMetadata {
   id: string;
   group: string;
   homeTeam: string;
@@ -17,7 +19,7 @@ export interface LegacyMatchSeed {
   minute: number;
 }
 
-export interface OfficialFixtureSeed {
+export interface OfficialFixtureSeed extends Partial<PenaltyShootoutMetadata> {
   sourceUrl: string;
   matchNumber: number | null;
   group: string;
@@ -61,22 +63,29 @@ export const buildOfficialMatchSeeds = (
   }
 
   return officialFixtures.map((fixture, index) => {
+    const parsedPenaltyMetadata = normalizeMatchTeamsAndScore(fixture);
+    const normalizedFixture = {
+      ...parsedPenaltyMetadata,
+      decidedByPenalties: parsedPenaltyMetadata.decidedByPenalties || fixture.decidedByPenalties === true,
+      homePenaltyScore: parsedPenaltyMetadata.homePenaltyScore ?? fixture.homePenaltyScore ?? null,
+      awayPenaltyScore: parsedPenaltyMetadata.awayPenaltyScore ?? fixture.awayPenaltyScore ?? null,
+    };
     const legacyMatch = legacyByFixtureKey.get(buildFixtureKey(fixture));
     const homeFlag =
-      teamFlags.get(toTeamLookupKey(fixture.homeTeam)) ??
+      teamFlags.get(toTeamLookupKey(normalizedFixture.homeTeam)) ??
       legacyMatch?.homeFlag ??
-      (isPlaceholderTeam(fixture.homeTeam) ? '🏆' : '🏳️');
+      (isPlaceholderTeam(normalizedFixture.homeTeam) ? '🏆' : '🏳️');
     const awayFlag =
-      teamFlags.get(toTeamLookupKey(fixture.awayTeam)) ??
+      teamFlags.get(toTeamLookupKey(normalizedFixture.awayTeam)) ??
       legacyMatch?.awayFlag ??
-      (isPlaceholderTeam(fixture.awayTeam) ? '🏆' : '🏳️');
+      (isPlaceholderTeam(normalizedFixture.awayTeam) ? '🏆' : '🏳️');
 
     return {
       id: legacyMatch?.id ?? `m${fixture.matchNumber ?? index + 1}`,
       group: fixture.group,
-      homeTeam: normalizeWhitespace(fixture.homeTeam),
+      homeTeam: normalizeWhitespace(normalizedFixture.homeTeam),
       homeFlag,
-      awayTeam: normalizeWhitespace(fixture.awayTeam),
+      awayTeam: normalizeWhitespace(normalizedFixture.awayTeam),
       awayFlag,
       dateSgt: fixture.dateSgt || legacyMatch?.dateSgt || '',
       timeSgt: fixture.timeSgt || legacyMatch?.timeSgt || '12:00 AM',
@@ -85,6 +94,9 @@ export const buildOfficialMatchSeeds = (
       status: fixture.status,
       homeScore: fixture.homeScore,
       awayScore: fixture.awayScore,
+      decidedByPenalties: normalizedFixture.decidedByPenalties,
+      homePenaltyScore: normalizedFixture.homePenaltyScore,
+      awayPenaltyScore: normalizedFixture.awayPenaltyScore,
       minute: fixture.status === 'finished' ? 90 : 0,
     } satisfies LegacyMatchSeed;
   });
