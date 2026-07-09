@@ -1,4 +1,6 @@
-export interface FootballMatch {
+import type { PenaltyShootoutMetadata } from './match-display';
+
+export interface FootballMatch extends Partial<PenaltyShootoutMetadata> {
   id: string;
   group: string;
   homeTeam: string;
