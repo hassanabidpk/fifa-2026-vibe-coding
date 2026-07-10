@@ -1419,7 +1419,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 101,
     "group": "Semifinals",
     "homeTeam": "France",
-    "awayTeam": "Winner match 98",
+    "awayTeam": "Spain",
     "dateSgt": "Wed, Jul 15",
     "timeSgt": "03:00 AM",
     "stadium": "Dallas Stadium",
