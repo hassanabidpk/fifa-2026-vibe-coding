@@ -1410,9 +1410,9 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "09:00 AM",
     "stadium": "Kansas City Stadium",
     "city": "Stadium City Kansas City",
-    "status": "upcoming",
-    "homeScore": 0,
-    "awayScore": 0
+    "status": "finished",
+    "homeScore": 3,
+    "awayScore": 1
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289290/400021541",
