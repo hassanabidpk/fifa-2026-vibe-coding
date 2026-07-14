@@ -1424,7 +1424,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "03:00 AM",
     "stadium": "Dallas Stadium",
     "city": "Dallas",
-    "status": "live",
+    "status": "finished",
     "homeScore": 0,
     "awayScore": 2
   },
@@ -1446,7 +1446,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289291/400021542",
     "matchNumber": 103,
     "group": "Third Place",
-    "homeTeam": "Runner-up match 101",
+    "homeTeam": "France",
     "awayTeam": "Runner-up match 102",
     "dateSgt": "Sun, Jul 19",
     "timeSgt": "05:00 AM",
@@ -1459,8 +1459,8 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289292/400021543",
     "matchNumber": 104,
-    "group": "Final",
-    "homeTeam": "Winner match 101",
+    "group": "Third Place",
+    "homeTeam": "Spain",
     "awayTeam": "Winner match 102",
     "dateSgt": "Mon, Jul 20",
     "timeSgt": "03:00 AM",
