@@ -1249,7 +1249,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021533",
     "matchNumber": 89,
-    "group": "Round of 16",
+    "group": "Round of 32",
     "homeTeam": "Paraguay",
     "awayTeam": "France",
     "dateSgt": "Sun, Jul 5",
@@ -1263,7 +1263,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021530",
     "matchNumber": 90,
-    "group": "Round of 16",
+    "group": "Round of 32",
     "homeTeam": "Canada",
     "awayTeam": "Morocco",
     "dateSgt": "Sun, Jul 5",
@@ -1277,7 +1277,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021532",
     "matchNumber": 91,
-    "group": "Round of 16",
+    "group": "Round of 32",
     "homeTeam": "Brazil",
     "awayTeam": "Norway",
     "dateSgt": "Mon, Jul 6",
@@ -1291,7 +1291,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021531",
     "matchNumber": 92,
-    "group": "Round of 16",
+    "group": "Round of 32",
     "homeTeam": "Mexico",
     "awayTeam": "England",
     "dateSgt": "Mon, Jul 6",
@@ -1305,7 +1305,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021529",
     "matchNumber": 93,
-    "group": "Round of 16",
+    "group": "Round of 32",
     "homeTeam": "Portugal",
     "awayTeam": "Spain",
     "dateSgt": "Tue, Jul 7",
@@ -1319,7 +1319,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021534",
     "matchNumber": 94,
-    "group": "Round of 16",
+    "group": "Round of 32",
     "homeTeam": "USA",
     "awayTeam": "Belgium",
     "dateSgt": "Tue, Jul 7",
@@ -1333,7 +1333,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021528",
     "matchNumber": 95,
-    "group": "Round of 16",
+    "group": "Round of 32",
     "homeTeam": "Argentina",
     "awayTeam": "Egypt",
     "dateSgt": "Wed, Jul 8",
@@ -1347,7 +1347,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289288/400021535",
     "matchNumber": 96,
-    "group": "Round of 16",
+    "group": "Round of 32",
     "homeTeam": "Switzerland",
     "awayTeam": "Colombia (PSO 4-3)",
     "dateSgt": "Wed, Jul 8",
@@ -1361,7 +1361,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289289/400021536",
     "matchNumber": 97,
-    "group": "Round of 16",
+    "group": "Round of 32",
     "homeTeam": "France",
     "awayTeam": "Morocco",
     "dateSgt": "Fri, Jul 10",
@@ -1375,7 +1375,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289289/400021538",
     "matchNumber": 98,
-    "group": "Round of 16",
+    "group": "Round of 32",
     "homeTeam": "Spain",
     "awayTeam": "Belgium",
     "dateSgt": "Sat, Jul 11",
@@ -1389,7 +1389,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289289/400021539",
     "matchNumber": 99,
-    "group": "Round of 16",
+    "group": "Round of 32",
     "homeTeam": "Norway",
     "awayTeam": "England (AET)",
     "dateSgt": "Sun, Jul 12",
@@ -1403,7 +1403,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289289/400021537",
     "matchNumber": 100,
-    "group": "Round of 16",
+    "group": "Round of 32",
     "homeTeam": "Argentina",
     "awayTeam": "Switzerland (AET)",
     "dateSgt": "Sun, Jul 12",
@@ -1417,7 +1417,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289290/400021541",
     "matchNumber": 101,
-    "group": "Semifinals",
+    "group": "Round of 32",
     "homeTeam": "France",
     "awayTeam": "Spain",
     "dateSgt": "Wed, Jul 15",
@@ -1431,7 +1431,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289290/400021540",
     "matchNumber": 102,
-    "group": "Semifinals",
+    "group": "Round of 32",
     "homeTeam": "England",
     "awayTeam": "Argentina",
     "dateSgt": "Thu, Jul 16",
