@@ -1438,16 +1438,16 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "03:00 AM",
     "stadium": "Atlanta Stadium",
     "city": "Atlanta",
-    "status": "live",
+    "status": "finished",
     "homeScore": 1,
-    "awayScore": 0
+    "awayScore": 2
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289291/400021542",
     "matchNumber": 103,
     "group": "Third Place",
     "homeTeam": "France",
-    "awayTeam": "Runner-up match 102",
+    "awayTeam": "England",
     "dateSgt": "Sun, Jul 19",
     "timeSgt": "05:00 AM",
     "stadium": "Miami Stadium",
@@ -1461,7 +1461,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 104,
     "group": "Third Place",
     "homeTeam": "Spain",
-    "awayTeam": "Winner match 102",
+    "awayTeam": "Argentina",
     "dateSgt": "Mon, Jul 20",
     "timeSgt": "03:00 AM",
     "stadium": "New York New Jersey Stadium",
