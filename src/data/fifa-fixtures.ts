@@ -1452,9 +1452,9 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "timeSgt": "05:00 AM",
     "stadium": "Miami Stadium",
     "city": "Miami",
-    "status": "upcoming",
+    "status": "live",
     "homeScore": 0,
-    "awayScore": 0
+    "awayScore": 1
   },
   {
     "sourceUrl": "https://www.fifa.com/en/match-centre/match/17/285023/289292/400021543",
