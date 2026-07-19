@@ -1461,7 +1461,7 @@ const OFFICIAL_FIFA_FIXTURES_JSON = String.raw`[
     "matchNumber": 104,
     "group": "Third Place",
     "homeTeam": "Spain",
-    "awayTeam": "Argentina",
+    "awayTeam": "Argentina (AET)",
     "dateSgt": "Mon, Jul 20",
     "timeSgt": "03:00 AM",
     "stadium": "New York New Jersey Stadium",
